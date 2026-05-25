@@ -81,7 +81,44 @@ class Opay extends AbstractProvider
 		}
 		$options['encrypt_type'] = $encryptType;
 
+		// 自個別 pm_xxx boolean (表單來源) + 既有 payment_methods (升級或 API 來源)
+		// 合併出最終的 payment_methods 陣列。
+		// 採用個別 boolean 欄位是因為 XF 的 <xf:checkboxrow> 內 <xf:option>
+		// 不支援 name="x[]" 陣列式提交，每個 checkbox 必須有自己獨立的 name。
 		$methods = (array) ($options['payment_methods'] ?? []);
+
+		$pmMap = [
+			'pm_credit' => 'Credit',
+			'pm_webatm' => 'WebATM',
+			'pm_atm'    => 'ATM',
+			'pm_cvs'    => 'CVS',
+		];
+
+		// 只要有任何一個 pm_X 欄位出現於 $options，視為「來自表單提交」，
+		// 以表單為準完全重建 payment_methods；避免使用者取消勾選的項目殘留。
+		$hasPmFormFields = false;
+		foreach ($pmMap AS $pmKey => $apiVal)
+		{
+			if (array_key_exists($pmKey, $options))
+			{
+				$hasPmFormFields = true;
+				break;
+			}
+		}
+
+		if ($hasPmFormFields)
+		{
+			$methods = [];
+			foreach ($pmMap AS $pmKey => $apiVal)
+			{
+				if (!empty($options[$pmKey]))
+				{
+					$methods[] = $apiVal;
+				}
+				unset($options[$pmKey]); // 清掉表單暫存欄位，避免污染 DB
+			}
+		}
+
 		$valid   = ['Credit', 'WebATM', 'ATM', 'CVS'];
 		$methods = array_values(array_intersect($valid, $methods));
 		if (!$methods)

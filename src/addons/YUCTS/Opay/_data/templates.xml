@@ -42,16 +42,16 @@
 
 <xf:checkboxrow label="{{ phrase('opay_payment_methods') }}"
 	hint="{{ phrase('opay_payment_methods_explain') }}">
-	<xf:option name="options[payment_methods][]" value="Credit"
+	<xf:option name="options[pm_credit]"
 		selected="{{ in_array('Credit', $profile.options.payment_methods ?: ['Credit']) }}"
 		label="{{ phrase('opay_payment_method.Credit') }}" />
-	<xf:option name="options[payment_methods][]" value="WebATM"
+	<xf:option name="options[pm_webatm]"
 		selected="{{ in_array('WebATM', $profile.options.payment_methods ?: []) }}"
 		label="{{ phrase('opay_payment_method.WebATM') }}" />
-	<xf:option name="options[payment_methods][]" value="ATM"
+	<xf:option name="options[pm_atm]"
 		selected="{{ in_array('ATM', $profile.options.payment_methods ?: []) }}"
 		label="{{ phrase('opay_payment_method.ATM') }}" />
-	<xf:option name="options[payment_methods][]" value="CVS"
+	<xf:option name="options[pm_cvs]"
 		selected="{{ in_array('CVS', $profile.options.payment_methods ?: []) }}"
 		label="{{ phrase('opay_payment_method.CVS') }}" />
 </xf:checkboxrow>
