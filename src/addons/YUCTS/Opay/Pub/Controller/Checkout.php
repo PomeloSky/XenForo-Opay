@@ -44,10 +44,23 @@ class Checkout extends AbstractController
 			return $this->redirect($this->buildLink('account/upgrades'));
 		}
 
+		// 取 PurchaseRequest。先試 relation；若 relation 因型別 / 條件
+		// 等原因取不到，改用直接 WHERE request_key 查詢，避免使用者卡在
+		// 「無效的付款請求」訊息。
 		$purchaseRequest = $transaction->PurchaseRequest;
+		if (!$purchaseRequest && $transaction->request_key !== '')
+		{
+			$purchaseRequest = $this->em()->findOne(PurchaseRequest::class, [
+				'request_key' => $transaction->request_key,
+			]);
+		}
+
 		if (!$purchaseRequest)
 		{
-			return $this->notFound(\XF::phrase('opay.invalid_checkout_request'));
+			return $this->error(
+				\XF::phrase('opay.invalid_checkout_request')
+				. ' [ref: ' . $merchantTradeNo . ']'
+			);
 		}
 
 		$visitor = \XF::visitor();
@@ -59,7 +72,10 @@ class Checkout extends AbstractController
 		$purchase = $this->rebuildPurchase($purchaseRequest, $error);
 		if (!$purchase)
 		{
-			return $this->error($error ?: \XF::phrase('opay.invalid_checkout_request'));
+			return $this->error(
+				($error ? (string) $error : (string) \XF::phrase('opay.invalid_checkout_request'))
+				. ' [ref: ' . $merchantTradeNo . ']'
+			);
 		}
 
 		/** @var OpayProvider $provider */
@@ -79,8 +95,21 @@ class Checkout extends AbstractController
 	}
 
 	/**
-	 * 由 PurchaseRequest 的 extra_data 重新建立 Purchase 物件，
-	 * 與 XF 內建 \XF\Pub\Controller\PurchaseController::actionProcess() 流程一致。
+	 * 由 PurchaseRequest 的 extra_data 重新建立 Purchase 物件。
+	 *
+	 * 流程：
+	 *  1. 先試 handler->getPurchaseFromExtraData()
+	 *     若失敗 (例如 canPurchase() 因使用者已擁有相同升級而傳 false)
+	 *  2. 改以低階方式：找出 purchasable entity 並呼叫
+	 *     handler->getPurchaseObject() 重建 (略過 canPurchase 限制)
+	 *
+	 * 「使用者已有此升級但仍進入結帳流程」的情形通常發生在：
+	 *  - 站長以後台「手動成立訂單」測試後，再以同一帳號嘗試購買
+	 *  - 升級已過期但仍掛在 Active 表中
+	 *  - 同一帳號於不同視窗重複下單
+	 *
+	 *  既然使用者已主動發起 PurchaseRequest，我們應該讓他完成這次付款
+	 *  (XF 的 completePurchase 對重複升級多半是冪等延長到期日)。
 	 */
 	protected function rebuildPurchase(PurchaseRequest $purchaseRequest, &$error = null)
 	{
@@ -103,14 +132,38 @@ class Checkout extends AbstractController
 		}
 
 		/** @var AbstractPurchasable $handler */
-		$handler  = $purchasable->handler;
+		$handler = $purchasable->handler;
+		$visitor = \XF::visitor();
+
+		// 第一階段：標準流程
 		$purchase = $handler->getPurchaseFromExtraData(
 			$purchaseRequest->extra_data,
 			$paymentProfile,
-			\XF::visitor(),
+			$visitor,
 			$error
 		);
+		if ($purchase)
+		{
+			return $purchase;
+		}
 
-		return $purchase ?: null;
+		// 第二階段：略過 canPurchase 直接以 PurchasableEntity 重建
+		try
+		{
+			$info = $handler->getPurchasableFromExtraData($purchaseRequest->extra_data);
+		}
+		catch (\Throwable $e)
+		{
+			$info = [];
+		}
+		$purchasableEntity = $info['purchasable'] ?? null;
+
+		if ($purchasableEntity)
+		{
+			$error = null;
+			return $handler->getPurchaseObject($paymentProfile, $purchasableEntity, $visitor);
+		}
+
+		return null;
 	}
 }

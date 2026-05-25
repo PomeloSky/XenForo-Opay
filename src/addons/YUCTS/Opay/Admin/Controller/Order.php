@@ -281,15 +281,88 @@ class Order extends AbstractController
 		$transaction->extra_info = $extra;
 		$transaction->save();
 
+		$rows           = [];
+		$fieldLabels    = $this->getOpayFieldLabels();
+		$tradeStatusMap = $this->getOpayTradeStatusMap();
+		foreach ($result AS $key => $value)
+		{
+			$valueLabel = '';
+			if ($key === 'TradeStatus' && $value !== '' && isset($tradeStatusMap[$value]))
+			{
+				$valueLabel = $tradeStatusMap[$value];
+			}
+			$rows[] = [
+				'key'         => $key,
+				'labelZh'     => $fieldLabels[$key] ?? '',
+				'value'       => $value,
+				'valueLabel'  => $valueLabel,
+			];
+		}
+
 		$viewParams = [
 			'transaction' => $transaction,
-			'result'      => $result,
+			'rows'        => $rows,
 		];
 		return $this->view(
 			'YUCTS\Opay:Order\Query',
 			'yucts_opay_order_query',
 			$viewParams
 		);
+	}
+
+	/**
+	 * OPay 查詢回應中常見欄位的中文標籤。
+	 * 沒列在這裡的欄位，模板會直接顯示原始英文。
+	 *
+	 * @return array<string,string>
+	 */
+	protected function getOpayFieldLabels(): array
+	{
+		return [
+			'MerchantID'           => '特店編號',
+			'MerchantTradeNo'      => '商店訂單編號',
+			'StoreID'              => '分店代號',
+			'TradeNo'              => 'OPay 交易序號',
+			'TradeAmt'             => '交易金額',
+			'PaymentDate'          => '付款日期',
+			'PaymentType'          => '付款方式',
+			'HandlingCharge'       => 'OPay 手續費',
+			'PaymentTypeChargeFee' => '交易手續費',
+			'TradeDate'            => '訂單成立時間',
+			'TradeStatus'          => '訂單狀態',
+			'ItemName'             => '商品名稱',
+			'CheckMacValue'        => '檢查碼',
+			'RtnCode'              => '回傳代碼',
+			'RtnMsg'               => '回傳訊息',
+			'TradeDesc'            => '交易描述',
+			'CustomField1'         => '自訂欄位 1',
+			'CustomField2'         => '自訂欄位 2',
+			'CustomField3'         => '自訂欄位 3',
+			'CustomField4'         => '自訂欄位 4',
+			'BankCode'             => 'ATM 銀行代碼',
+			'vAccount'             => 'ATM 虛擬帳號',
+			'ExpireDate'           => '繳費期限',
+			'PaymentNo'            => '超商代碼',
+			'Barcode1'             => '超商條碼 1',
+			'Barcode2'             => '超商條碼 2',
+			'Barcode3'             => '超商條碼 3',
+		];
+	}
+
+	/**
+	 * TradeStatus 代碼的中文說明。
+	 *
+	 * @return array<string,string>
+	 */
+	protected function getOpayTradeStatusMap(): array
+	{
+		return [
+			'0'        => '尚未付款',
+			'1'        => '已付款',
+			'2'        => '已取號待繳費',
+			'10100073' => '已取得超商繳費代碼，等待繳費',
+			'10200047' => '查無此訂單 (OPay 端尚未建立)',
+		];
 	}
 
 	// =============================================================

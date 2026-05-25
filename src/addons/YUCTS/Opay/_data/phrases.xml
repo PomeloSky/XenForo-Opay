@@ -72,4 +72,41 @@
   <phrase title="opay.payment_initiating" version_id="1000010" version_string="1.0.0"><![CDATA[正在前往 OPay 收銀台，請稍候…]]></phrase>
   <phrase title="opay.click_if_not_redirected" version_id="1000010" version_string="1.0.0"><![CDATA[若未自動跳轉，請點此前往付款]]></phrase>
   <phrase title="opay.invalid_checkout_request" version_id="1000010" version_string="1.0.0"><![CDATA[無效的付款請求；訂單可能已過期、已付款或已被取消。]]></phrase>
+  <phrase title="cron_entry.yuctsOpayCleanup" version_id="1000010" version_string="1.0.0"><![CDATA[OPay：清理過期交易記錄]]></phrase>
+  <phrase title="opay_field.MerchantID" version_id="1000010" version_string="1.0.0"><![CDATA[特店編號]]></phrase>
+  <phrase title="opay_field.MerchantTradeNo" version_id="1000010" version_string="1.0.0"><![CDATA[商店訂單編號]]></phrase>
+  <phrase title="opay_field.StoreID" version_id="1000010" version_string="1.0.0"><![CDATA[分店代號]]></phrase>
+  <phrase title="opay_field.TradeNo" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 交易序號]]></phrase>
+  <phrase title="opay_field.TradeAmt" version_id="1000010" version_string="1.0.0"><![CDATA[交易金額]]></phrase>
+  <phrase title="opay_field.PaymentDate" version_id="1000010" version_string="1.0.0"><![CDATA[付款日期]]></phrase>
+  <phrase title="opay_field.PaymentType" version_id="1000010" version_string="1.0.0"><![CDATA[付款方式]]></phrase>
+  <phrase title="opay_field.HandlingCharge" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 手續費]]></phrase>
+  <phrase title="opay_field.PaymentTypeChargeFee" version_id="1000010" version_string="1.0.0"><![CDATA[交易手續費]]></phrase>
+  <phrase title="opay_field.TradeDate" version_id="1000010" version_string="1.0.0"><![CDATA[訂單成立時間]]></phrase>
+  <phrase title="opay_field.TradeStatus" version_id="1000010" version_string="1.0.0"><![CDATA[訂單狀態]]></phrase>
+  <phrase title="opay_field.ItemName" version_id="1000010" version_string="1.0.0"><![CDATA[商品名稱]]></phrase>
+  <phrase title="opay_field.CheckMacValue" version_id="1000010" version_string="1.0.0"><![CDATA[檢查碼]]></phrase>
+  <phrase title="opay_field.RtnCode" version_id="1000010" version_string="1.0.0"><![CDATA[回傳代碼]]></phrase>
+  <phrase title="opay_field.RtnMsg" version_id="1000010" version_string="1.0.0"><![CDATA[回傳訊息]]></phrase>
+  <phrase title="opay_field.TradeDesc" version_id="1000010" version_string="1.0.0"><![CDATA[交易描述]]></phrase>
+  <phrase title="opay_field.CustomField1" version_id="1000010" version_string="1.0.0"><![CDATA[自訂欄位 1]]></phrase>
+  <phrase title="opay_field.CustomField2" version_id="1000010" version_string="1.0.0"><![CDATA[自訂欄位 2]]></phrase>
+  <phrase title="opay_field.CustomField3" version_id="1000010" version_string="1.0.0"><![CDATA[自訂欄位 3]]></phrase>
+  <phrase title="opay_field.CustomField4" version_id="1000010" version_string="1.0.0"><![CDATA[自訂欄位 4]]></phrase>
+  <phrase title="opay_field.BankCode" version_id="1000010" version_string="1.0.0"><![CDATA[ATM 銀行代碼]]></phrase>
+  <phrase title="opay_field.vAccount" version_id="1000010" version_string="1.0.0"><![CDATA[ATM 虛擬帳號]]></phrase>
+  <phrase title="opay_field.ExpireDate" version_id="1000010" version_string="1.0.0"><![CDATA[繳費期限]]></phrase>
+  <phrase title="opay_field.PaymentNo" version_id="1000010" version_string="1.0.0"><![CDATA[超商代碼]]></phrase>
+  <phrase title="opay_field.Barcode1" version_id="1000010" version_string="1.0.0"><![CDATA[超商條碼 1]]></phrase>
+  <phrase title="opay_field.Barcode2" version_id="1000010" version_string="1.0.0"><![CDATA[超商條碼 2]]></phrase>
+  <phrase title="opay_field.Barcode3" version_id="1000010" version_string="1.0.0"><![CDATA[超商條碼 3]]></phrase>
+  <phrase title="opay_trade_status.0" version_id="1000010" version_string="1.0.0"><![CDATA[尚未付款]]></phrase>
+  <phrase title="opay_trade_status.1" version_id="1000010" version_string="1.0.0"><![CDATA[已付款]]></phrase>
+  <phrase title="opay_trade_status.2" version_id="1000010" version_string="1.0.0"><![CDATA[已取號待繳費]]></phrase>
+  <phrase title="opay_trade_status.10200047" version_id="1000010" version_string="1.0.0"><![CDATA[查無此訂單 (OPay 端尚未建立)]]></phrase>
+  <phrase title="opay_trade_status.10100073" version_id="1000010" version_string="1.0.0"><![CDATA[已取得超商繳費代碼，等待繳費]]></phrase>
+  <phrase title="opay_block.basic_info" version_id="1000010" version_string="1.0.0"><![CDATA[基本資訊]]></phrase>
+  <phrase title="opay_block.transaction_info" version_id="1000010" version_string="1.0.0"><![CDATA[交易資訊]]></phrase>
+  <phrase title="opay_block.extra_info" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 完整回傳資料]]></phrase>
+  <phrase title="opay_block.related_logs" version_id="1000010" version_string="1.0.0"><![CDATA[相關交易日誌]]></phrase>
 </phrases>

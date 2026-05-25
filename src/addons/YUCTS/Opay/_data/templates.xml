@@ -165,25 +165,25 @@
   <template type="admin" title="yucts_opay_order_view" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('opay.order_view') }} — {$transaction.merchant_trade_no}</xf:title>
 
 <xf:pageaction>
-	<a href="{{ link('opay/orders') }}" class="button button--link"><i class="fa fa-arrow-left"></i> {{ phrase('back') }}</a>
-	<a href="{{ link('opay/orders/edit', $transaction) }}" class="button"><i class="fa fa-pencil"></i> {{ phrase('edit') }}</a>
-	<a href="{{ link('opay/orders/query', $transaction) }}" class="button"><i class="fa fa-refresh"></i> {{ phrase('opay_action.query') }}</a>
+	<a href="{{ link('opay/orders') }}" class="button button--link"><span class="button-text">&laquo; {{ phrase('back') }}</span></a>
+	<a href="{{ link('opay/orders/edit', $transaction) }}" class="button"><span class="button-text">{{ phrase('edit') }}</span></a>
+	<a href="{{ link('opay/orders/query', $transaction) }}" class="button"><span class="button-text">{{ phrase('opay_action.query') }}</span></a>
 	<xf:if is="$transaction.canRefund()">
-		<a href="{{ link('opay/orders/refund', $transaction) }}" class="button"><i class="fa fa-undo"></i> {{ phrase('opay_action.refund') }}</a>
+		<a href="{{ link('opay/orders/refund', $transaction) }}" class="button"><span class="button-text">{{ phrase('opay_action.refund') }}</span></a>
 	</xf:if>
 	<xf:if is="$transaction.canManuallyCancel()">
-		<a href="{{ link('opay/orders/cancel', $transaction) }}" class="button"><i class="fa fa-ban"></i> {{ phrase('opay_action.cancel') }}</a>
+		<a href="{{ link('opay/orders/cancel', $transaction) }}" class="button"><span class="button-text">{{ phrase('opay_action.cancel') }}</span></a>
 	</xf:if>
 	<xf:if is="$transaction.canManuallyComplete()">
-		<a href="{{ link('opay/orders/complete', $transaction) }}" class="button button--cta"><i class="fa fa-check"></i> {{ phrase('opay_action.complete') }}</a>
+		<a href="{{ link('opay/orders/complete', $transaction) }}" class="button button--cta"><span class="button-text">{{ phrase('opay_action.complete') }}</span></a>
 	</xf:if>
 </xf:pageaction>
 
 <div class="block">
 	<div class="block-container">
-		<h2 class="block-header">基本資訊</h2>
+		<h2 class="block-header">{{ phrase('opay_block.basic_info') }}</h2>
 		<div class="block-body">
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.status') }}</dt>
 				<dd>
 					<xf:if is="$transaction.status == 'paid'"><span class="label label--green">{$transaction.status_phrase}</span>
@@ -194,45 +194,48 @@
 					</xf:if>
 				</dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<hr class="formRowSep" />
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.merchant_trade_no') }}</dt>
 				<dd><code>{$transaction.merchant_trade_no}</code></dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.trade_no') }}</dt>
-				<dd><code>{{ $transaction.trade_no ?: '—' }}</code></dd>
+				<dd><xf:if is="$transaction.trade_no"><code>{$transaction.trade_no}</code><xf:else /><em class="u-muted">(尚未取得)</em></xf:if></dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.amount') }}</dt>
-				<dd><strong style="font-size:1.2em;">{$transaction.amount|number} {$transaction.currency}</strong></dd>
+				<dd><strong style="font-size:1.3em; color:#2a6bb0;">${$transaction.amount|number}</strong> {$transaction.currency}</dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.payment_type') }}</dt>
-				<dd>{{ $transaction.payment_type ?: $transaction.payment_method }}</dd>
+				<dd><xf:if is="$transaction.payment_type">{$transaction.payment_type}<xf:elseif is="$transaction.payment_method" />{$transaction.payment_method}<xf:else /><em class="u-muted">(未指定)</em></xf:if></dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.purchaser') }}</dt>
 				<dd>
-					<xf:if is="$transaction.User"><a href="{{ link('users', $transaction.User) }}">{$transaction.User.username}</a> (#{$transaction.user_id})
-					<xf:else />{$transaction.username} (#{$transaction.user_id})
+					<xf:if is="$transaction.User"><a href="{{ link('users', $transaction.User) }}">{$transaction.User.username}</a>
+					<xf:else />{$transaction.username}
 					</xf:if>
+					<span class="u-muted">(#{$transaction.user_id})</span>
 				</dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.create_date') }}</dt>
 				<dd><xf:date time="{$transaction.create_date}" /></dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.payment_date') }}</dt>
-				<dd><xf:if is="$transaction.payment_date"><xf:date time="{$transaction.payment_date}" /><xf:else />—</xf:if></dd>
+				<dd><xf:if is="$transaction.payment_date"><xf:date time="{$transaction.payment_date}" /><xf:else /><em class="u-muted">—</em></xf:if></dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<hr class="formRowSep" />
+			<dl class="pairs pairs--justified">
 				<dt>{{ phrase('opay.note') }}</dt>
-				<dd><xf:if is="$transaction.admin_note">{$transaction.admin_note|nl2br}<xf:else /><em class="u-muted">(無)</em></xf:if></dd>
+				<dd><xf:if is="$transaction.admin_note">{$transaction.admin_note|nl2br}<xf:else /><em class="u-muted">(無備註)</em></xf:if></dd>
 			</dl>
-			<dl class="pairs pairs--rows pairs--columns">
+			<dl class="pairs pairs--justified">
 				<dt>Request Key</dt>
-				<dd><code>{$transaction.request_key}</code></dd>
+				<dd><code class="u-muted" style="font-size:.85em;">{$transaction.request_key}</code></dd>
 			</dl>
 		</div>
 	</div>
@@ -241,9 +244,9 @@
 <xf:if is="$transaction.extra_info">
 	<div class="block">
 		<div class="block-container">
-			<h2 class="block-header">OPay 回傳資料 (extra_info)</h2>
+			<h2 class="block-header">{{ phrase('opay_block.extra_info') }}</h2>
 			<div class="block-body block-row">
-				<pre style="white-space:pre-wrap; word-break:break-all; max-height:400px; overflow:auto; font-size:12px; background:#f7f7f7; padding:12px; border-radius:4px;">{$transaction.extra_info|json}</pre>
+				<pre style="white-space:pre-wrap; word-break:break-all; max-height:400px; overflow:auto; font-size:12px; background:#f7f7f7; padding:12px; border-radius:4px; margin:0;">{$transaction.extra_info|json}</pre>
 			</div>
 		</div>
 	</div>
@@ -252,12 +255,12 @@
 <xf:if is="$logs is not empty">
 	<div class="block">
 		<div class="block-container">
-			<h2 class="block-header">{{ phrase('admin_navigation.yuctsOpayLog') }} <span class="block-headerCounter">({$logs|count})</span></h2>
+			<h2 class="block-header">{{ phrase('opay_block.related_logs') }} <span class="block-headerCounter">({$logs|count})</span></h2>
 			<table class="dataList-table">
 				<thead>
 					<tr class="dataList-row dataList-row--header">
-						<th class="dataList-cell" style="width:160px;">時間</th>
-						<th class="dataList-cell" style="width:80px;">類型</th>
+						<th class="dataList-cell" style="width:170px;">時間</th>
+						<th class="dataList-cell" style="width:90px;">類型</th>
 						<th class="dataList-cell">訊息</th>
 						<th class="dataList-cell" style="width:200px;">TradeNo</th>
 					</tr>
@@ -274,7 +277,7 @@
 								</xf:if>
 							</td>
 							<td class="dataList-cell">{$log.log_message}</td>
-							<td class="dataList-cell"><code>{$log.transaction_id}</code></td>
+							<td class="dataList-cell"><code style="font-size:.85em;">{$log.transaction_id}</code></td>
 						</tr>
 					</xf:foreach>
 				</tbody>
@@ -318,7 +321,8 @@
   <template type="admin" title="yucts_opay_order_query" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('opay.query_result') }} — {$transaction.merchant_trade_no}</xf:title>
 
 <xf:pageaction>
-	<a href="{{ link('opay/orders/view', $transaction) }}" class="button button--link"><i class="fa fa-arrow-left"></i> {{ phrase('back') }}</a>
+	<a href="{{ link('opay/orders/view', $transaction) }}" class="button button--link">&laquo; {{ phrase('back') }}</a>
+	<a href="{{ link('opay/orders/query', $transaction) }}" class="button">重新查詢</a>
 </xf:pageaction>
 
 <div class="block">
@@ -327,20 +331,44 @@
 		<table class="dataList-table">
 			<thead>
 				<tr class="dataList-row dataList-row--header">
-					<th class="dataList-cell" style="width:240px;">欄位</th>
+					<th class="dataList-cell" style="width:220px;">欄位</th>
 					<th class="dataList-cell">值</th>
 				</tr>
 			</thead>
 			<tbody>
-				<xf:foreach loop="$result" key="$k" value="$v">
+				<xf:foreach loop="$rows" value="$row">
 					<tr class="dataList-row">
-						<td class="dataList-cell"><code>{$k}</code></td>
-						<td class="dataList-cell">{$v}</td>
+						<td class="dataList-cell">
+							<xf:if is="$row.labelZh">
+								<strong>{$row.labelZh}</strong>
+								<div class="u-muted" style="font-size:.85em;"><code>{$row.key}</code></div>
+							<xf:else />
+								<code>{$row.key}</code>
+							</xf:if>
+						</td>
+						<td class="dataList-cell">
+							<xf:if is="$row.value === ''">
+								<em class="u-muted">(空)</em>
+							<xf:else />
+								<xf:if is="$row.key == 'CheckMacValue'">
+									<code style="font-size:.8em; word-break:break-all;">{$row.value}</code>
+								<xf:else />
+									{$row.value}
+								</xf:if>
+								<xf:if is="$row.valueLabel">
+									&nbsp;&mdash;&nbsp; <strong>{$row.valueLabel}</strong>
+								</xf:if>
+							</xf:if>
+						</td>
 					</tr>
 				</xf:foreach>
 			</tbody>
 		</table>
 	</div>
+</div>
+
+<div class="blockMessage blockMessage--info">
+	此處顯示的是從 OPay 即時查詢的結果。如果 <code>TradeStatus</code> 顯示為「查無此訂單」，代表使用者點了「購買」按鈕但實際從未送出付款表單到 OPay (例如中途關閉視窗)。
 </div>
 ]]></template>
 
