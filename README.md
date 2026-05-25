@@ -128,7 +128,8 @@ cp -r /tmp/xf-opay/src/addons/YUCTS /path/to/your-xenforo/src/addons/
 ### 4. （可選）調整全域選項
 **後台 → 設定 → 選項 → OPay 歐付寶**：
 - **交易記錄保留天數**：超過此天數的 `pending` / `failed` / `cancelled` 紀錄會在每日 04:15 自動清除（最少 7 天）。
-- **啟用除錯模式**：將完整回傳資料寫入 `internal_data/data_log_`（僅供上線前測試）。
+- **啟用除錯模式**：將每一次與 OPay 的請求、回應內容寫入 `internal_data/yucts_opay_debug.log`，可用於診斷 CheckMacValue 不符等問題；上線後請關閉。
+   - 日誌**不會**寫入 XenForo「伺服器錯誤日誌」，僅寫入專屬檔案，避免污染錯誤頁面。
 
 ---
 
@@ -156,55 +157,56 @@ cp -r /tmp/xf-opay/src/addons/YUCTS /path/to/your-xenforo/src/addons/
 ## 付款流程說明
 
 ```
-        ┌────────────┐                ┌───────────────┐
-        │  XF User   │                │   OPay AIO    │
-        └─────┬──────┘                └───────┬───────┘
-              │  1. 點擊升級                  │
-              │ ───────────────┐              │
-              │                ▼              │
-        ┌─────┴──────────────────┐            │
-        │  payment.php (XF)      │            │
-        │  → YUCTS\Opay\Payment  │            │
-        │      ::initiatePayment │            │
-        └─────┬──────────────────┘            │
-              │  2. 寫入 xf_yucts_opay_transaction
-              │     (pending)                 │
-              │                               │
-              │  3. 回傳 auto-submit 表單     │
-              │  (CheckMacValue=SHA256)       │
-              │ ─────────────────────────────►│
-              │                               │
-              │  4. 使用者完成付款            │
-              │                               │
-              │  5. ReturnURL (server-to-     │
-              │     server) → payment_callback.php
-              │ ◄─────────────────────────────│
-              │                               │
-        ┌─────┴────────────────────┐          │
-        │ payment_callback.php     │          │
-        │  → setupCallback()       │          │
-        │  → validateCallback()    │          │
-        │       (CheckMacValue!)   │          │
-        │  → validateCost()        │          │
-        │  → getPaymentResult()    │          │
-        │  → completeTransaction() │          │
-        └─────┬────────────────────┘          │
-              │                               │
-              │  6. 回應 1|OK                 │
-              │ ─────────────────────────────►│
-              │                               │
-              │  7. 觸發 XF 升級開通          │
-              │     (User Upgrade Job)        │
-              │                               │
-              │  8. 使用者被導回 OrderResultURL
-              │     (顯示「升級完成」頁面)    │
-              ▼                               ▼
+[使用者]                [XenForo]                [OPay]
+  │
+  │ 1. 在 /account/upgrades 按下「購買」(AJAX POST)
+  │ ───────────────────────►│
+  │                          │ 2. PurchaseController → initiatePayment()
+  │                          │    寫入 OpayTransaction (status=pending)
+  │                          │    回傳 Redirect → /opay-checkout/{key}/
+  │ ◄───────────────────────│
+  │
+  │ 3. XF AJAX 收到 Redirect → 整頁跳轉到 /opay-checkout/{key}/
+  │ ───────────────────────►│
+  │                          │ 4. Pub\Controller\Checkout::actionIndex
+  │                          │    重建 Purchase → buildCheckoutFormData
+  │                          │    回傳極簡 HTML (跳過 PAGE_CONTAINER) +
+  │                          │    auto-submit form
+  │ ◄───────────────────────│
+  │
+  │ 5. 表單 POST 到 OPay 收銀台
+  │ ──────────────────────────────────────────────►│
+  │                                                  │ 使用者完成付款
+  │                                                  │
+  │                                                  │ 6a. server-to-server
+  │                          │ ◄────────────────────│     ReturnURL POST 至
+  │                          │    payment_callback.php  (CheckMacValue 驗證)
+  │                          │    → completeTransaction → 升級開通
+  │                          │    回應 1|OK ───────►│
+  │                                                  │
+  │                                                  │ 6b. 瀏覽器跨站 POST
+  │ ◄──────────────────────────────────────────────│     OrderResultURL
+  │                                                       (/opay-return/{key})
+  │ 7. 瀏覽器在 /opay-return/{key}/ (公開頁，無需登入)
+  │    回傳 HTML 含 meta refresh + JS 同源 GET 跳轉
+  │ ───────────────────────►│
+  │                          │ → /account/upgrade-purchase (同源 GET，
+  │                          │    cookies 帶得出 → 使用者保持登入)
+  │ ◄───────────────────────│
+  ▼
 ```
 
+**為什麼要有 `/opay-checkout/{key}/` 與 `/opay-return/{key}/` 這兩個中介頁？**
+
+1. **`/opay-checkout/{key}/`** — XF 內建 `/account/upgrades` 的「購買」按鈕是 **AJAX 提交**並期待 JSON 回應。如果 `initiatePayment` 直接回傳含 OPay 表單的 View，AJAX 處理器只會把它當 overlay 處理，自動 submit 永遠不會觸發整頁跳轉。改成回傳 Redirect 後，XF AJAX 會整頁跳轉到這個中介 URL，該頁再用純 HTML form auto-submit 到 OPay。
+
+2. **`/opay-return/{key}/`** — OPay 在使用者付款完成後，是用 **跨站 POST 302** 把瀏覽器導向 `OrderResultURL`。瀏覽器套用 `SameSite=Lax` 政策時，**不會**送出 XF 的 session cookie，使用者會被當成未登入。若直接指向 `/account/upgrade-purchase` 就會看到「請先登入」即使使用者原本就有登入。本套件改把 `OrderResultURL` 指向「不需要登入」的公開頁 `/opay-return/{key}/`，該頁回應一張極簡 HTML 用 JS / meta refresh 跳回 `/account/upgrade-purchase`；此次跳轉為**同源 GET**，cookies 會正常送出，使用者保持登入狀態。
+
 **安全要點**：
-- 在第 5 步收到回傳時，第一件事就是 `CheckMacValue` 驗證（採 `hash_equals` 常數時間比對）。驗證失敗將直接以 HTTP 400 拒絕並寫入錯誤日誌。
+- 在第 6a 步（S2S callback）收到回傳時，第一件事就是 `CheckMacValue` 驗證（採 `hash_equals` 常數時間比對）。驗證失敗將直接以 HTTP 400 拒絕並寫入交易記錄。
 - 金額另以 `validateCost()` 與 `xf_purchase_request.cost_amount` 比對，避免攻擊者以小額付款開通大額升級。
 - `validateTransaction()` 確保同一筆 OPay TradeNo 不會被處理兩次。
+- `/opay-return/{key}/` 只負責跳轉，不更新付款狀態；實際結果以 S2S callback 為準。
 
 ---
 
@@ -228,8 +230,18 @@ src/addons/YUCTS/Opay/
 │       └── MySql.php             # 資料表 schema 定義
 ├── Payment/
 │   └── Opay.php                  # XF 付款服務提供者本體
+├── Pub/
+│   ├── Controller/
+│   │   ├── Checkout.php          # /opay-checkout/{key}/ 中介頁
+│   │   └── Result.php            # /opay-return/{key}/  公開回傳頁
+│   └── View/
+│       └── Payment/
+│           ├── Initiate.php       # 自訂 View：純 HTML auto-submit 至 OPay
+│           └── Result.php         # 自訂 View：純 HTML 同源 JS 跳回 XF
 ├── Repository/
 │   └── OpayTransaction.php
+├── Util/
+│   └── DebugLog.php              # internal_data/yucts_opay_debug.log 寫入
 ├── Vendor/
 │   ├── Sdk.php                   # OPay AIO API 輕量封裝
 │   └── SdkException.php
@@ -310,6 +322,18 @@ A：XenForo 內建 User Upgrade 已可由使用者重複續購，且 OPay 定期
 ### Callback 回傳 400 / CheckMacValue verify fail
 - 檢查 `HashKey` / `HashIV` 是否與目前環境（Stage / Production）相符。
 - 檢查您的 web server 是否在中間有對請求做任何 URL Rewrite / Body 改寫（如 mod_security 移除 `+`）。
+- 後台 → 設定 → 選項 → OPay 歐付寶 → 啟用除錯模式；重新測試後檢查 `internal_data/yucts_opay_debug.log`，內含完整的請求 / 回應 raw 資料。
+
+### 使用者完成付款回站後顯示「請先登入」
+- 此情形多半發生在使用者瀏覽器套用 `SameSite=Lax` 政策時，OPay 跨站 POST 不會帶出 XF session cookie。
+- 本套件 v1.0.0 起預設將 `OrderResultURL` 指向公開的 `/opay-return/{key}/`，由該頁以同源 GET 跳轉回 `/account/upgrade-purchase`，已可避免此問題。
+- 若您**升級**自更舊版本，請：
+  1. 後台 → 工具 → 重建 → 重建路由
+  2. 在 OPay / ECPay 後台「結帳網址」設定中，確認沒有自行覆蓋 OrderResultURL。
+
+### 使用者本來就有同款升級時卡在「無效的付款請求」
+- 本套件 v1.0.0 起，若 `canPurchase()` 因「使用者已擁有」而擋下，會自動 fallback 以 `getPurchaseObject()` 重建 Purchase，讓使用者完成付款（XF 對重複升級多半是冪等延長到期日）。
+- 若您仍卡住，請啟用除錯模式並檢查 `internal_data/yucts_opay_debug.log`。
 
 ---
 

@@ -11,6 +11,7 @@ use XF\Payment\CallbackState;
 use XF\Purchasable\Purchase;
 use YUCTS\Opay\Entity\OpayTransaction;
 use YUCTS\Opay\Repository\OpayTransaction as TransactionRepo;
+use YUCTS\Opay\Util\DebugLog;
 use YUCTS\Opay\Vendor\Sdk;
 use YUCTS\Opay\Vendor\SdkException;
 
@@ -126,12 +127,11 @@ class Opay extends AbstractProvider
 
 		$url = $controller->buildLink('opay-checkout', ['key' => $transaction->merchant_trade_no]);
 
-		if (\XF::options()->yuctsOpayDebugMode)
-		{
-			\XF::logError('[OPay] initiatePayment redirect → ' . $url
-				. ' (merchant_trade_no=' . $transaction->merchant_trade_no
-				. ', amount=' . $purchaseRequest->cost_amount . ')');
-		}
+		DebugLog::write('initiatePayment',
+			'redirect → ' . $url
+			. ' (merchant_trade_no=' . $transaction->merchant_trade_no
+			. ', amount=' . $purchaseRequest->cost_amount . ')'
+		);
 
 		return $controller->redirect($url);
 	}
@@ -163,6 +163,15 @@ class Opay extends AbstractProvider
 		$tradeDesc = $this->sanitizeTradeDesc($purchase->title ?: $purchase->purchasableTitle ?: 'Purchase');
 		$amount    = (int) round((float) $purchaseRequest->cost_amount);
 
+		// OrderResultURL 必須是「不需要登入」的公開頁，因為 OPay 是用跨站 POST
+		// 把瀏覽器導回，SameSite=Lax 政策會擋下 XF session cookie。
+		// 把它指到我們自己的 /opay-return/{key}/，再以同源 JS / meta refresh 跳回
+		// /account/upgrade-purchase；那次跳轉是同源 GET，cookies 會正常帶出。
+		$resultUrl = \XF::app()->router('public')->buildLink(
+			'canonical:opay-return',
+			['key' => $transaction->merchant_trade_no]
+		);
+
 		$params = [
 			'MerchantTradeNo'   => $transaction->merchant_trade_no,
 			'MerchantTradeDate' => gmdate('Y/m/d H:i:s', \XF::$time + 28800),
@@ -172,7 +181,7 @@ class Opay extends AbstractProvider
 			'ItemName'          => $itemName,
 			'ReturnURL'         => $this->getCallbackUrl(),
 			'ClientBackURL'     => $purchase->cancelUrl,
-			'OrderResultURL'    => $purchase->returnUrl,
+			'OrderResultURL'    => $resultUrl,
 			'ChoosePayment'     => $choosePayment,
 			'NeedExtraPaidInfo' => 'N',
 			'EncryptType'       => $sdk->getEncryptType(),
@@ -194,12 +203,11 @@ class Opay extends AbstractProvider
 		$params = $sdk->buildCheckoutParameters($params);
 		$action = $sdk->getCheckoutEndpoint();
 
-		if (\XF::options()->yuctsOpayDebugMode)
-		{
-			$debug = $params;
-			unset($debug['CheckMacValue']);
-			\XF::logError('[OPay] buildCheckoutFormData → ' . $action . ' ' . json_encode($debug, JSON_UNESCAPED_UNICODE));
-		}
+		$debug = $params;
+		unset($debug['CheckMacValue']);
+		DebugLog::write('buildCheckoutFormData',
+			$action . ' ' . json_encode($debug, JSON_UNESCAPED_UNICODE)
+		);
 
 		return ['action' => $action, 'params' => $params];
 	}

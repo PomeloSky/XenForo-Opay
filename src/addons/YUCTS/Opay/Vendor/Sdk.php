@@ -267,8 +267,6 @@ class Sdk
 	 */
 	protected function httpPost(string $url, array $params): string
 	{
-		$debug = class_exists(\XF::class) && \XF::options() && !empty(\XF::options()->yuctsOpayDebugMode);
-
 		$ch = curl_init();
 		if ($ch === false)
 		{
@@ -298,13 +296,13 @@ class Sdk
 
 		curl_close($ch);
 
-		if ($debug)
-		{
-			$dbgParams = $params;
-			unset($dbgParams['CheckMacValue']);
-			\XF::logError('[OPay] POST ' . $url . ' → ' . json_encode($dbgParams, JSON_UNESCAPED_UNICODE)
-				. ' | response: ' . substr((string) $response, 0, 500));
-		}
+		$dbgParams = $params;
+		unset($dbgParams['CheckMacValue']);
+		\YUCTS\Opay\Util\DebugLog::write('http_post',
+			$url
+			. ' → ' . json_encode($dbgParams, JSON_UNESCAPED_UNICODE)
+			. ' | response: ' . substr((string) $response, 0, 800)
+		);
 
 		return (string) $response;
 	}
