@@ -112,6 +112,38 @@ class Opay extends AbstractProvider
 
 	public function initiatePayment(Controller $controller, PurchaseRequest $purchaseRequest, Purchase $purchase)
 	{
+		// 不直接回傳含 OPay 表單的 View。原因：
+		// XenForo 的 /account/upgrades 「購買」按鈕是以 AJAX 提交 (_xfResponseType=json)，
+		// 若我們回傳 View，XF AJAX 處理器只會把它當 overlay 內容處理，無法觸發瀏覽器整頁
+		// 跳轉至 OPay。實務上會看到使用者被導回 OrderResultURL (/account/upgrade-purchase)
+		// 而沒有真正前往 OPay。
+		//
+		// 解法：先把訂單寫入 (pending)，然後 redirect 至我們站內的中介頁
+		// /opay-checkout/{merchant_trade_no}/，由 XF AJAX 接到 redirect 後負責瀏覽器
+		// 整頁跳轉。中介頁 (Pub\Controller\Checkout) 再重新組裝參數並輸出
+		// 自動 submit 至 OPay 的純 HTML 表單。
+		$transaction = $this->createOrUpdateTransaction($purchaseRequest, $purchase);
+
+		$url = $controller->buildLink('opay-checkout', ['key' => $transaction->merchant_trade_no]);
+
+		if (\XF::options()->yuctsOpayDebugMode)
+		{
+			\XF::logError('[OPay] initiatePayment redirect → ' . $url
+				. ' (merchant_trade_no=' . $transaction->merchant_trade_no
+				. ', amount=' . $purchaseRequest->cost_amount . ')');
+		}
+
+		return $controller->redirect($url);
+	}
+
+	/**
+	 * 由 Pub\Controller\Checkout 呼叫，產生送往 OPay 的完整表單參數
+	 * (含 MerchantID / EncryptType / CheckMacValue) 與 action URL。
+	 *
+	 * @return array{action: string, params: array<string,scalar>}
+	 */
+	public function buildCheckoutFormData(PurchaseRequest $purchaseRequest, Purchase $purchase): array
+	{
 		$paymentProfile = $purchase->paymentProfile;
 		$sdk            = $this->buildSdk($paymentProfile);
 
@@ -127,24 +159,20 @@ class Opay extends AbstractProvider
 			$ignorePayment = implode('#', $ignore);
 		}
 
-		$itemName = $this->buildItemName($purchase);
+		$itemName  = $this->buildItemName($purchase);
 		$tradeDesc = $this->sanitizeTradeDesc($purchase->title ?: $purchase->purchasableTitle ?: 'Purchase');
 		$amount    = (int) round((float) $purchaseRequest->cost_amount);
 
-		$callbackUrl = $this->getCallbackUrl();
-		$returnUrl   = $purchase->returnUrl;
-		$cancelUrl   = $purchase->cancelUrl;
-
 		$params = [
 			'MerchantTradeNo'   => $transaction->merchant_trade_no,
-			'MerchantTradeDate' => gmdate('Y/m/d H:i:s', \XF::$time + 28800), // 台灣時區
+			'MerchantTradeDate' => gmdate('Y/m/d H:i:s', \XF::$time + 28800),
 			'PaymentType'       => 'aio',
 			'TotalAmount'       => $amount,
 			'TradeDesc'         => $tradeDesc,
 			'ItemName'          => $itemName,
-			'ReturnURL'         => $callbackUrl,
-			'ClientBackURL'     => $cancelUrl,
-			'OrderResultURL'    => $returnUrl,
+			'ReturnURL'         => $this->getCallbackUrl(),
+			'ClientBackURL'     => $purchase->cancelUrl,
+			'OrderResultURL'    => $purchase->returnUrl,
 			'ChoosePayment'     => $choosePayment,
 			'NeedExtraPaidInfo' => 'N',
 			'EncryptType'       => $sdk->getEncryptType(),
@@ -154,12 +182,10 @@ class Opay extends AbstractProvider
 		{
 			$params['IgnorePayment'] = $ignorePayment;
 		}
-
 		if ($choosePayment === 'ATM' || in_array('ATM', $methods, true))
 		{
 			$params['ExpireDate'] = (int) ($paymentProfile->options['atm_expire_date'] ?? 3);
 		}
-
 		if ($choosePayment === 'CVS' || in_array('CVS', $methods, true))
 		{
 			$params['StoreExpireDate'] = (int) ($paymentProfile->options['cvs_expire_minutes'] ?? 10080);
@@ -170,20 +196,12 @@ class Opay extends AbstractProvider
 
 		if (\XF::options()->yuctsOpayDebugMode)
 		{
-			$debugParams = $params;
-			unset($debugParams['CheckMacValue']);
-			\XF::logError('[OPay] initiatePayment → ' . $action . ' ' . json_encode($debugParams, JSON_UNESCAPED_UNICODE));
+			$debug = $params;
+			unset($debug['CheckMacValue']);
+			\XF::logError('[OPay] buildCheckoutFormData → ' . $action . ' ' . json_encode($debug, JSON_UNESCAPED_UNICODE));
 		}
 
-		$viewParams = [
-			'action' => $action,
-			'params' => $params,
-		];
-		return $controller->view(
-			'YUCTS\Opay:Payment\Initiate',
-			'payment_initiate_opay',
-			$viewParams
-		);
+		return ['action' => $action, 'params' => $params];
 	}
 
 	/**

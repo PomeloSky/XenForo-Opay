@@ -71,4 +71,5 @@
   <phrase title="opay.invalid_check_mac_value" version_id="1000010" version_string="1.0.0"><![CDATA[CheckMacValue 驗證失敗，已拒絕 OPay 通知。]]></phrase>
   <phrase title="opay.payment_initiating" version_id="1000010" version_string="1.0.0"><![CDATA[正在前往 OPay 收銀台，請稍候…]]></phrase>
   <phrase title="opay.click_if_not_redirected" version_id="1000010" version_string="1.0.0"><![CDATA[若未自動跳轉，請點此前往付款]]></phrase>
+  <phrase title="opay.invalid_checkout_request" version_id="1000010" version_string="1.0.0"><![CDATA[無效的付款請求；訂單可能已過期、已付款或已被取消。]]></phrase>
 </phrases>

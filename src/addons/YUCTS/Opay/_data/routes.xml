@@ -3,4 +3,5 @@
   <route route_type="admin" route_prefix="opay" controller="YUCTS\Opay:Order" context="yuctsOpay"/>
   <route route_type="admin" route_prefix="opay" sub_name="orders" format="orders/:int&lt;transaction_id&gt;/" controller="YUCTS\Opay:Order" context="yuctsOpayOrders"/>
   <route route_type="admin" route_prefix="opay" sub_name="logs" format="logs/" controller="YUCTS\Opay:Order" action_prefix="Log" context="yuctsOpayLog"/>
+  <route route_type="public" route_prefix="opay-checkout" format=":str&lt;key&gt;/" controller="YUCTS\Opay:Checkout"/>
 </routes>

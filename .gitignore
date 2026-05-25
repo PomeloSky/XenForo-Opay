@@ -2,6 +2,10 @@
 /opaytw/
 /xenforo237/
 
+# 本機打包檔
+*.zip
+src/addons/*.zip
+
 # 系統檔
 Thumbs.db
 .DS_Store
