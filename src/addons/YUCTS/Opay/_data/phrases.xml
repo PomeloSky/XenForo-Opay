@@ -26,7 +26,7 @@
   <phrase title="opay_environment.production" version_id="1000010" version_string="1.0.0"><![CDATA[正式環境 (Production)]]></phrase>
   <phrase title="opay_environment.stage" version_id="1000010" version_string="1.0.0"><![CDATA[測試環境 (Stage)]]></phrase>
   <phrase title="opay_encrypt_type" version_id="1000010" version_string="1.0.0"><![CDATA[CheckMacValue 加密方式]]></phrase>
-  <phrase title="opay_encrypt_type_explain" version_id="1000010" version_string="1.0.0"><![CDATA[請與您 OPay/綠界後台「系統介接設定」中的「CheckMacValue 加密類型」一致。新申請帳戶請選 SHA256；舊帳戶若預設仍為 MD5，請暫時選 MD5 並儘速於 OPay 後台升級為 SHA256。]]></phrase>
+  <phrase title="opay_encrypt_type_explain" version_id="1000010" version_string="1.0.0"><![CDATA[請與 OPay 系統能接受的加密方式一致。<br /><br /><b>絕大多數情況請保持 SHA256</b>：OPay 自 2017 年起，所有新申請的特店帳號都預設使用 SHA256，OPay 後台並沒有「切換 MD5/SHA256」的選項。<br /><br />僅有極少數 2017 年以前申請、且從未升級過的舊特店帳號需要選 MD5。若您不確定，請：<br />1. 先用 SHA256 測試一筆訂單<br />2. 若 OPay 後台收到訂單，代表您的帳號使用 SHA256<br />3. 若 OPay 後台收不到，且您後台的「OPay 訂單管理」狀態一直停在 pending、或 OPay 回傳 CheckMacValue 不符錯誤，再試 MD5<br />4. 仍有疑問請聯繫 OPay 客服 (02-2655-1775) 確認。]]></phrase>
   <phrase title="opay_encrypt_type.sha256" version_id="1000010" version_string="1.0.0"><![CDATA[SHA256 (推薦)]]></phrase>
   <phrase title="opay_encrypt_type.md5" version_id="1000010" version_string="1.0.0"><![CDATA[MD5]]></phrase>
   <phrase title="opay_payment_methods" version_id="1000010" version_string="1.0.0"><![CDATA[允許的付款方式]]></phrase>

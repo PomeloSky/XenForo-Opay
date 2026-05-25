@@ -32,19 +32,25 @@ use YUCTS\Opay\Repository\OpayTransaction as TransactionRepo;
 class Result extends AbstractController
 {
 	/**
-	 * OPay 的跨站 POST 沒有 XF csrf token，全面跳過 CSRF 檢查。
+	 * OPay 的跨站 POST 沒有 XF csrf token，跳過 CSRF 檢查。
+	 *
+	 * 注意：XF 沒有 getCsrfActions / getCsrfSkipActions 之類的設定點，
+	 * 唯一正確的做法是直接 override checkCsrfIfNeeded() 為 no-op。
+	 * (見 \XF\Mvc\Controller::preDispatch() 與 checkCsrfIfNeeded())
 	 */
-	public function getCsrfActions(): array
+	public function checkCsrfIfNeeded($action, ParameterBag $params)
 	{
-		return [];
+		// 故意空 — 接受 OPay 來的跨站 POST
 	}
 
 	/**
 	 * 公開頁，不能要求登入 (cookie 通常被 SameSite=Lax 擋下)。
+	 * 我們也不需要 XF 的 IP/ban/policy 檢查，因為這頁的請求實際上是
+	 * 「OPay 把使用者瀏覽器導回我們」，並非「使用者主動瀏覽論壇」。
 	 */
 	protected function preDispatchType($action, ParameterBag $params)
 	{
-		// 故意空 — 跳過 XF 預設的「需登入」檢查
+		// 故意空 — 跳過所有 XF 預設的 viewing / login / TFA 檢查
 	}
 
 	public function actionIndex(ParameterBag $params)

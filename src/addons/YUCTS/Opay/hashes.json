@@ -7,7 +7,7 @@
     "src/addons/YUCTS/Opay/Install/Data/MySql.php": "235d72a82374faada1757cf0f6eb396e626e99dd0875baf1018b04ade83bff23",
     "src/addons/YUCTS/Opay/Payment/Opay.php": "279bd1f2316d63dadbfb25103960945e72bfffbf010286822b7a9d15c4f8680e",
     "src/addons/YUCTS/Opay/Pub/Controller/Checkout.php": "00378b81f847c843e5e5839e1958d26ce8d2cc761d951a6269a79267b76d1c3e",
-    "src/addons/YUCTS/Opay/Pub/Controller/Result.php": "efe593aa0890917a18f25f636a7cbec5ef7e42043f528edd5fc5316f94d57575",
+    "src/addons/YUCTS/Opay/Pub/Controller/Result.php": "55af76f6594b2d5eda4ef53e269cc4163132be57296571257aaba2bd51e1ea29",
     "src/addons/YUCTS/Opay/Pub/View/Payment/Initiate.php": "9f94f21e698b167b6832676cafe09ab1893302930d42daf4dc572f3184b3f7b6",
     "src/addons/YUCTS/Opay/Pub/View/Payment/Result.php": "7247400fe1b3b8c7718c7ba47c480fbd6ea2f1e1a53aa3d77d1edd1870d4f0cc",
     "src/addons/YUCTS/Opay/Repository/OpayTransaction.php": "de7e1ec02f895095f0a77a2707ff42dd0e4caec6855efd3d91b2ffed989148b9",
@@ -20,7 +20,7 @@
     "src/addons/YUCTS/Opay/_data/cron.xml": "75f17d90882080d3bd06270d74a3ff6305c460e219dbeb6bcdbd2793c5bdce4f",
     "src/addons/YUCTS/Opay/_data/options.xml": "6cbc980c1aada2a3a95e0290eb82e8f2a80c24bea426ae55096e3671e1427482",
     "src/addons/YUCTS/Opay/_data/option_groups.xml": "495bbdd07044b9bb9fc21f73f44e76ffbf36eb9c850232607264c09a5895527d",
-    "src/addons/YUCTS/Opay/_data/phrases.xml": "fa9608f1ad2b8210e6a451e65c00e945ae0b4c87ab6d81a9ae783eaace746846",
+    "src/addons/YUCTS/Opay/_data/phrases.xml": "ae3aa56a89d5834851597a358475a484e4d905e00328bec3bc73fdf9e5d5f105",
     "src/addons/YUCTS/Opay/_data/routes.xml": "aef7570143eaa09dbd436eed849999b31e9ea536bca689f1d77625bd5ad68422",
     "src/addons/YUCTS/Opay/_data/templates.xml": "eed333a19d9ae84db9fad4ec32155b2793e3dc128f965988c798531258fda1c1"
 }
