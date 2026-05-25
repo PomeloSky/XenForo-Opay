@@ -295,7 +295,7 @@
 				</tr>
 				<tr class="dataList-row">
 					<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">CheckMacValue 加密</th>
-					<td class="dataList-cell"><code>{$diag.encrypt_type|upper}</code></td>
+					<td class="dataList-cell"><code>{$diag.encrypt_type|to_upper}</code></td>
 				</tr>
 				<tr class="dataList-row">
 					<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">API 端點</th>
