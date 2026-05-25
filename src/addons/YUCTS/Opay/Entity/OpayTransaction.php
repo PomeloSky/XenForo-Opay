@@ -107,7 +107,7 @@ class OpayTransaction extends Entity
 
 	public function getStatusPhrase(): \XF\Phrase
 	{
-		return \XF::phrase('opay.status.' . $this->status);
+		return \XF::phrase('opay_status.' . $this->status);
 	}
 
 	public function canManuallyComplete(): bool

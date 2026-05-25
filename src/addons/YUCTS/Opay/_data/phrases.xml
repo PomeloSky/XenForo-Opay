@@ -45,15 +45,15 @@
   <phrase title="opay.purchaser" version_id="1000010" version_string="1.0.0"><![CDATA[購買者]]></phrase>
   <phrase title="opay.create_date" version_id="1000010" version_string="1.0.0"><![CDATA[建立時間]]></phrase>
   <phrase title="opay.payment_date" version_id="1000010" version_string="1.0.0"><![CDATA[付款時間]]></phrase>
-  <phrase title="opay.status.pending" version_id="1000010" version_string="1.0.0"><![CDATA[待付款]]></phrase>
-  <phrase title="opay.status.paid" version_id="1000010" version_string="1.0.0"><![CDATA[已付款]]></phrase>
-  <phrase title="opay.status.failed" version_id="1000010" version_string="1.0.0"><![CDATA[失敗]]></phrase>
-  <phrase title="opay.status.cancelled" version_id="1000010" version_string="1.0.0"><![CDATA[已取消]]></phrase>
-  <phrase title="opay.status.refunded" version_id="1000010" version_string="1.0.0"><![CDATA[已退款]]></phrase>
-  <phrase title="opay.action.complete" version_id="1000010" version_string="1.0.0"><![CDATA[手動成立訂單]]></phrase>
-  <phrase title="opay.action.cancel" version_id="1000010" version_string="1.0.0"><![CDATA[手動取消訂單]]></phrase>
-  <phrase title="opay.action.refund" version_id="1000010" version_string="1.0.0"><![CDATA[向 OPay 申請退刷]]></phrase>
-  <phrase title="opay.action.query" version_id="1000010" version_string="1.0.0"><![CDATA[查詢 OPay 訂單狀態]]></phrase>
+  <phrase title="opay_status.pending" version_id="1000010" version_string="1.0.0"><![CDATA[待付款]]></phrase>
+  <phrase title="opay_status.paid" version_id="1000010" version_string="1.0.0"><![CDATA[已付款]]></phrase>
+  <phrase title="opay_status.failed" version_id="1000010" version_string="1.0.0"><![CDATA[失敗]]></phrase>
+  <phrase title="opay_status.cancelled" version_id="1000010" version_string="1.0.0"><![CDATA[已取消]]></phrase>
+  <phrase title="opay_status.refunded" version_id="1000010" version_string="1.0.0"><![CDATA[已退款]]></phrase>
+  <phrase title="opay_action.complete" version_id="1000010" version_string="1.0.0"><![CDATA[手動成立訂單]]></phrase>
+  <phrase title="opay_action.cancel" version_id="1000010" version_string="1.0.0"><![CDATA[手動取消訂單]]></phrase>
+  <phrase title="opay_action.refund" version_id="1000010" version_string="1.0.0"><![CDATA[向 OPay 申請退刷]]></phrase>
+  <phrase title="opay_action.query" version_id="1000010" version_string="1.0.0"><![CDATA[查詢 OPay 訂單狀態]]></phrase>
   <phrase title="opay.complete_confirm" version_id="1000010" version_string="1.0.0"><![CDATA[您確定要手動將此訂單標示為已付款？此動作會立即觸發 XenForo 升級開通或商品交付流程，並寫入交易記錄，無法復原。]]></phrase>
   <phrase title="opay.cancel_confirm" version_id="1000010" version_string="1.0.0"><![CDATA[您確定要手動取消此訂單？]]></phrase>
   <phrase title="opay.refund_confirm" version_id="1000010" version_string="1.0.0"><![CDATA[您確定要向 OPay 申請退刷？此動作會通知 OPay 退款，且無法於後台直接撤回。]]></phrase>

@@ -458,11 +458,11 @@ class Order extends AbstractController
 	{
 		return [
 			''          => \XF::phrase('all'),
-			'pending'   => \XF::phrase('opay.status.pending'),
-			'paid'      => \XF::phrase('opay.status.paid'),
-			'failed'    => \XF::phrase('opay.status.failed'),
-			'cancelled' => \XF::phrase('opay.status.cancelled'),
-			'refunded'  => \XF::phrase('opay.status.refunded'),
+			'pending'   => \XF::phrase('opay_status.pending'),
+			'paid'      => \XF::phrase('opay_status.paid'),
+			'failed'    => \XF::phrase('opay_status.failed'),
+			'cancelled' => \XF::phrase('opay_status.cancelled'),
+			'refunded'  => \XF::phrase('opay_status.refunded'),
 		];
 	}
 }

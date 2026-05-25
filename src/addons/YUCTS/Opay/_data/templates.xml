@@ -154,15 +154,15 @@
 <xf:pageaction>
 	<a href="{{ link('opay/orders/edit', $transaction) }}" class="button button--link">{{ phrase('edit') }}</a>
 	<xf:if is="$transaction.canManuallyComplete()">
-		<a href="{{ link('opay/orders/complete', $transaction) }}" class="button button--cta">{{ phrase('opay.action.complete') }}</a>
+		<a href="{{ link('opay/orders/complete', $transaction) }}" class="button button--cta">{{ phrase('opay_action.complete') }}</a>
 	</xf:if>
 	<xf:if is="$transaction.canManuallyCancel()">
-		<a href="{{ link('opay/orders/cancel', $transaction) }}" class="button">{{ phrase('opay.action.cancel') }}</a>
+		<a href="{{ link('opay/orders/cancel', $transaction) }}" class="button">{{ phrase('opay_action.cancel') }}</a>
 	</xf:if>
 	<xf:if is="$transaction.canRefund()">
-		<a href="{{ link('opay/orders/refund', $transaction) }}" class="button">{{ phrase('opay.action.refund') }}</a>
+		<a href="{{ link('opay/orders/refund', $transaction) }}" class="button">{{ phrase('opay_action.refund') }}</a>
 	</xf:if>
-	<a href="{{ link('opay/orders/query', $transaction) }}" class="button button--link">{{ phrase('opay.action.query') }}</a>
+	<a href="{{ link('opay/orders/query', $transaction) }}" class="button button--link">{{ phrase('opay_action.query') }}</a>
 </xf:pageaction>
 
 <div class="block">
