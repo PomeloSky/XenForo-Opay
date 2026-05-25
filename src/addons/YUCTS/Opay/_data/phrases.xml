@@ -3,6 +3,7 @@
   <phrase title="admin_navigation.yuctsOpay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶]]></phrase>
   <phrase title="admin_navigation.yuctsOpayOrders" version_id="1000010" version_string="1.0.0"><![CDATA[訂單管理]]></phrase>
   <phrase title="admin_navigation.yuctsOpayLog" version_id="1000010" version_string="1.0.0"><![CDATA[交易記錄]]></phrase>
+  <phrase title="admin_navigation.yuctsOpayTest" version_id="1000010" version_string="1.0.0"><![CDATA[連線測試]]></phrase>
   <phrase title="admin_permission.yuctsOpayManage" version_id="1000010" version_string="1.0.0"><![CDATA[管理 OPay 訂單與交易記錄]]></phrase>
   <phrase title="option_group.yuctsOpay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶]]></phrase>
   <phrase title="option_group_description.yuctsOpay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay (歐付寶 / 綠界科技) 金流整合的全域設定。實際商店金鑰請於「付款方式」中設定。]]></phrase>

@@ -46,10 +46,11 @@ class Sdk
 		int    $encryptType = self::ENC_SHA256
 	)
 	{
-		$this->merchantId  = $merchantId;
-		$this->hashKey     = $hashKey;
-		$this->hashIv      = $hashIv;
-		$this->apiHost     = rtrim($apiHost, '/');
+		// 再次防止 user 設定時夾帶空白導致 CheckMacValue 永遠對不上 OPay
+		$this->merchantId  = trim($merchantId);
+		$this->hashKey     = trim($hashKey);
+		$this->hashIv      = trim($hashIv);
+		$this->apiHost     = rtrim(trim($apiHost), '/');
 		$this->encryptType = $encryptType;
 	}
 
@@ -79,6 +80,8 @@ class Sdk
 		}
 		$raw .= '&HashIV=' . $this->hashIv;
 
+		$rawBeforeEncode = $raw; // 為 debug log 保留
+
 		$raw = strtolower(urlencode($raw));
 
 		// 還原 .NET HttpUtility.UrlEncode 與 PHP 的字元編碼差異
@@ -93,7 +96,28 @@ class Sdk
 			? hash('sha256', $raw)
 			: md5($raw);
 
-		return strtoupper($hash);
+		$result = strtoupper($hash);
+
+		// 為避免把 HashKey / HashIV 完整字串寫進 log，僅保留長度+前後 2 碼遮罩
+		\YUCTS\Opay\Util\DebugLog::write('check_mac',
+			'algo=' . ($this->encryptType === self::ENC_SHA256 ? 'sha256' : 'md5')
+			. ' hk=' . self::maskSecret($this->hashKey)
+			. ' iv=' . self::maskSecret($this->hashIv)
+			. ' pre_hash_len=' . strlen($raw)
+			. ' result=' . $result
+		);
+
+		return $result;
+	}
+
+	protected static function maskSecret(string $s): string
+	{
+		$len = strlen($s);
+		if ($len <= 4)
+		{
+			return str_repeat('*', $len) . '(' . $len . ')';
+		}
+		return substr($s, 0, 2) . str_repeat('*', max(0, $len - 4)) . substr($s, -2) . '(' . $len . ')';
 	}
 
 	/**

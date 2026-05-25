@@ -61,17 +61,80 @@ class Result extends AbstractController
 		$repo        = $this->repository('YUCTS\Opay:OpayTransaction');
 		$transaction = $key === '' ? null : $repo->findByMerchantTradeNo($key);
 
-		$rtnCode = (string) $this->filter('RtnCode', 'str');
-		$status  = ($rtnCode === '1') ? 'success' : 'pending';
+		// OPay 用 POST 把交易結果一併帶回。盡可能解析以給使用者正確的訊息，
+		// 但實際的「付款完成」判定仍以 server-to-server callback 為準。
+		$payload = (array) $this->request()->getInput();
 
-		// 統一導回 XF 內建的 /account/upgrade-purchase 頁；
-		// 它會根據 xf_purchase_request 與已開通的升級顯示適當訊息。
-		$redirectUrl = $this->buildLink('canonical:account/upgrade-purchase');
+		$rtnCode = (string) ($payload['RtnCode'] ?? '');
+		$rtnMsg  = (string) ($payload['RtnMsg']  ?? '');
+		$tradeNo = (string) ($payload['TradeNo'] ?? '');
+
+		// 驗證 CheckMacValue (若 transaction 存在且有 payload 可驗)。
+		// 若 OPay 未 POST (例如 OPay 自己錯誤頁 auto redirect)、或 payload
+		// 為空、或驗證失敗，視為「處理中」，仍導回升級頁；S2S callback
+		// 一旦進來，狀態會由 webhook 真正更新。
+		$macOk = false;
+		if ($payload && $transaction && $transaction->PaymentProfile)
+		{
+			try
+			{
+				/** @var \YUCTS\Opay\Payment\Opay $handler */
+				$handler = $transaction->PaymentProfile->Provider->handler ?? null;
+				if ($handler && method_exists($handler, 'verifyReturnPayload'))
+				{
+					$macOk = $handler->verifyReturnPayload($transaction->PaymentProfile, $payload);
+				}
+			}
+			catch (\Throwable $e) { /* 不影響跳轉 */ }
+		}
+
+		\YUCTS\Opay\Util\DebugLog::write('return_url',
+			'key=' . $key
+			. ' rtn=' . $rtnCode
+			. ' msg=' . $rtnMsg
+			. ' trade_no=' . $tradeNo
+			. ' mac=' . ($macOk ? 'ok' : 'skip/fail')
+		);
+
+		// 依 RtnCode 推導畫面要顯示的狀態
+		if ($rtnCode === '1' && $macOk)
+		{
+			$status     = 'success';
+			$statusText = '付款已收到，正在帶您回到站內…';
+		}
+		else if ($rtnCode === '1')
+		{
+			// OPay 說成功但 CheckMacValue 對不上 / 缺資料 — 不能直接相信
+			$status     = 'pending';
+			$statusText = 'OPay 回報成功，但驗證未通過；系統將以 server-to-server 通知為準。正在帶您回到站內…';
+		}
+		else if ($rtnCode !== '' && $rtnCode !== '1')
+		{
+			$status     = 'failed';
+			$statusText = '付款未完成 (#' . htmlspecialchars($rtnCode) . ')';
+			if ($rtnMsg !== '')
+			{
+				$statusText .= '：' . htmlspecialchars($rtnMsg);
+			}
+		}
+		else
+		{
+			$status     = 'pending';
+			$statusText = '正在帶您回到站內，請稍候…';
+		}
+
+		// 成功 / 處理中 → 導回升級頁；失敗 → 導回升級選擇頁
+		$redirectUrl = ($status === 'failed')
+			? $this->buildLink('canonical:account/upgrades')
+			: $this->buildLink('canonical:account/upgrade-purchase');
 
 		$viewParams = [
 			'redirectUrl' => $redirectUrl,
 			'transaction' => $transaction,
 			'status'      => $status,
+			'statusText'  => $statusText,
+			'rtnCode'     => $rtnCode,
+			'rtnMsg'      => $rtnMsg,
 		];
 
 		return $this->view(

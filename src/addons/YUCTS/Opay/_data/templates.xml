@@ -444,6 +444,104 @@
 </div>
 ]]></template>
 
+  <template type="admin" title="yucts_opay_order_test" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>OPay 連線測試</xf:title>
+
+<div class="blockMessage blockMessage--info">
+	本頁會以您的設定，向 OPay 送出一筆「刻意不存在的訂單編號」進行查詢，藉此驗證：<br />
+	1. <b>HashKey / HashIV / 加密類型</b>是否與 OPay 帳號一致<br />
+	2. <b>網路 / API 端點</b>是否可達<br />
+	3. <b>CheckMacValue 演算法</b>是否雙向正確<br /><br />
+	正常的回應應為：OPay 回傳 <code>TradeStatus=10200047</code> (查無此訂單)，並通過 CheckMacValue 驗證。<br />
+	若您看到 <b>「CheckMacValue 驗證失敗」</b>或 <b>「找不到特店」</b>，請依錯誤訊息檢查 MerchantID / HashKey / HashIV / 加密類型。
+</div>
+
+<xf:form action="{{ link('opay/test') }}" class="block">
+	<div class="block-container">
+		<h2 class="block-header">執行測試</h2>
+		<div class="block-body">
+			<xf:selectrow name="payment_profile_id"
+				value="{$profile.payment_profile_id}"
+				label="付款設定檔"
+				explain="選擇您要測試的 OPay 付款設定檔。">
+				<xf:foreach loop="$profiles" value="$p">
+					<xf:option value="{$p.payment_profile_id}">
+						{$p.title} (Merchant: {$p.options.merchant_id}, {{ $p.options.environment ?: 'stage' }}, {{ ($p.options.encrypt_type ?: 'sha256')|to_upper }})
+					</xf:option>
+				</xf:foreach>
+			</xf:selectrow>
+		</div>
+		<xf:submitrow icon="search" submit="送出測試查詢" />
+	</div>
+</xf:form>
+
+<xf:if is="$nonce">
+	<div class="block">
+		<div class="block-container">
+			<h2 class="block-header">測試結果</h2>
+			<table class="dataList-table">
+				<tbody>
+					<tr class="dataList-row">
+						<th class="dataList-cell" style="width:200px; font-weight:bold; background:#f7f7f7;">使用的測試編號</th>
+						<td class="dataList-cell"><code>{$nonce}</code> (刻意產生的不存在編號)</td>
+					</tr>
+					<tr class="dataList-row">
+						<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">送出至</th>
+						<td class="dataList-cell">
+							<xf:if is="($profile.options.service_provider ?: 'opay') == 'ecpay'">
+								<code><xf:if is="($profile.options.environment ?: 'stage') == 'production'">https://payment.ecpay.com.tw<xf:else />https://payment-stage.ecpay.com.tw</xf:if>/Cashier/QueryTradeInfo/V5</code>
+							<xf:else />
+								<code><xf:if is="($profile.options.environment ?: 'stage') == 'production'">https://payment.opay.tw<xf:else />https://payment-stage.opay.tw</xf:if>/Cashier/QueryTradeInfo/V5</code>
+							</xf:if>
+						</td>
+					</tr>
+					<tr class="dataList-row">
+						<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">結果</th>
+						<td class="dataList-cell">
+							<xf:if is="$errorMsg">
+								<span class="label label--red">失敗</span>
+								<div style="margin-top:8px; padding:8px; background:#fee; border-left:3px solid #dc322f; font-size:13px;">{$errorMsg}</div>
+							<xf:elseif is="$result" />
+								<span class="label label--green">通過</span>
+								<div style="margin-top:4px; font-size:13px; color:#666;">
+									OPay 收到請求並回應，CheckMacValue 雙向驗證通過。
+									<xf:if is="$result.TradeStatus == '10200047'">
+										回傳 <code>TradeStatus=10200047</code>（查無此訂單）—— 此為預期回應，代表您的整合設定完全正確！
+									</xf:if>
+								</div>
+							<xf:else />
+								<em>尚未測試</em>
+							</xf:if>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<xf:if is="$result">
+		<div class="block">
+			<div class="block-container">
+				<h2 class="block-header">原始回應</h2>
+				<table class="dataList-table">
+					<tbody>
+						<xf:foreach loop="$result" key="$k" value="$v">
+							<tr class="dataList-row">
+								<td class="dataList-cell" style="width:240px;"><code>{$k}</code></td>
+								<td class="dataList-cell">
+									<xf:if is="$v === ''"><em class="u-muted">(空)</em>
+									<xf:else />{$v}
+									</xf:if>
+								</td>
+							</tr>
+						</xf:foreach>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</xf:if>
+</xf:if>
+]]></template>
+
   <template type="admin" title="yucts_opay_order_logs" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('admin_navigation.yuctsOpayLog') }}</xf:title>
 
 <div class="blockMessage blockMessage--info">

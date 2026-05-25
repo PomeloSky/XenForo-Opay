@@ -45,9 +45,11 @@ class Opay extends AbstractProvider
 
 	public function verifyConfig(array &$options, &$errors = []): bool
 	{
-		$merchantId = trim($options['merchant_id'] ?? '');
-		$hashKey    = trim($options['hash_key'] ?? '');
-		$hashIv     = trim($options['hash_iv'] ?? '');
+		// 一定要把使用者貼上時可能夾帶的尾隨 / 開頭空白吃掉並存回 $options。
+		// 否則計算 CheckMacValue 時會把空白也算進去，與 OPay 後端永遠對不上。
+		$options['merchant_id'] = $merchantId = trim($options['merchant_id'] ?? '');
+		$options['hash_key']    = $hashKey    = trim($options['hash_key'] ?? '');
+		$options['hash_iv']     = $hashIv     = trim($options['hash_iv'] ?? '');
 
 		if ($merchantId === '' || strlen($merchantId) > 10)
 		{
@@ -528,6 +530,23 @@ class Opay extends AbstractProvider
 	}
 
 	/**
+	 * 給 Pub\Controller\Result 用：驗證 OPay 跨站 POST 回傳資料的 CheckMacValue。
+	 * 與 callback validateCallback 的差異是這裡不寫 log、不更新狀態，
+	 * 只純粹回 true / false 供前端 UI 判斷。
+	 *
+	 * @param array<string,scalar> $payload
+	 */
+	public function verifyReturnPayload(PaymentProfile $profile, array $payload): bool
+	{
+		if (empty($payload))
+		{
+			return false;
+		}
+		$sdk = $this->buildSdk($profile);
+		return $sdk->verifyCheckMacValue($payload);
+	}
+
+	/**
 	 * 查詢 OPay 訂單目前狀態。
 	 *
 	 * @throws SdkException
@@ -564,9 +583,9 @@ class Opay extends AbstractProvider
 		}
 
 		return new Sdk(
-			(string) ($options['merchant_id'] ?? ''),
-			(string) ($options['hash_key'] ?? ''),
-			(string) ($options['hash_iv'] ?? ''),
+			trim((string) ($options['merchant_id'] ?? '')),
+			trim((string) ($options['hash_key'] ?? '')),
+			trim((string) ($options['hash_iv'] ?? '')),
 			$host,
 			$enc
 		);

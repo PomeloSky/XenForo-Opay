@@ -436,6 +436,89 @@ class Order extends AbstractController
 	}
 
 	// =============================================================
+	// 測試連線 (對 OPay 打一個刻意不存在的訂單編號，觀察回應)
+	// =============================================================
+
+	public function actionTest()
+	{
+		/** @var \XF\Repository\PaymentRepository $paymentRepo */
+		$paymentRepo = $this->repository('XF:Payment');
+		$profiles    = $paymentRepo->findPaymentProfilesForList()->fetch()
+			->filter(function ($p) { return $p->provider_id === 'opay'; });
+
+		if (!count($profiles))
+		{
+			return $this->error(
+				'目前還沒有 OPay 付款設定檔。請先到「設定 → 付款方式」新增一個 OPay 付款設定檔再回來。'
+			);
+		}
+
+		$profileId = $this->filter('payment_profile_id', 'uint');
+		if (!$profileId)
+		{
+			$profileId = (int) $profiles->first()->payment_profile_id;
+		}
+
+		/** @var \XF\Entity\PaymentProfile|null $profile */
+		$profile = $profiles[$profileId] ?? null;
+		if (!$profile)
+		{
+			return $this->error('找不到對應的付款設定檔。');
+		}
+
+		$result      = null;
+		$rawResponse = null;
+		$errorMsg    = null;
+		$nonce       = null;
+
+		if ($this->isPost())
+		{
+			// 使用一個刻意不存在的測試 MerchantTradeNo
+			$nonce = 'PING' . strtoupper(substr(sha1(microtime(true) . random_bytes(8)), 0, 11));
+
+			try
+			{
+				/** @var OpayProvider $handler */
+				$handler = $profile->Provider->handler;
+				if (!$handler instanceof OpayProvider)
+				{
+					throw new SdkException('Payment provider handler 解析失敗，請重新升級套件。');
+				}
+
+				// 直接拿 SDK 打一次 QueryTradeInfo
+				$reflection = new \ReflectionClass($handler);
+				$buildSdk   = $reflection->getMethod('buildSdk');
+				$buildSdk->setAccessible(true);
+				/** @var \YUCTS\Opay\Vendor\Sdk $sdk */
+				$sdk = $buildSdk->invoke($handler, $profile);
+
+				$result = $sdk->queryTradeInfo($nonce);
+			}
+			catch (SdkException $e)
+			{
+				$errorMsg = $e->getMessage();
+			}
+			catch (\Throwable $e)
+			{
+				$errorMsg = '未預期錯誤：' . $e->getMessage();
+			}
+		}
+
+		$viewParams = [
+			'profiles' => $profiles,
+			'profile'  => $profile,
+			'result'   => $result,
+			'errorMsg' => $errorMsg,
+			'nonce'    => $nonce,
+		];
+		return $this->view(
+			'YUCTS\Opay:Order\Test',
+			'yucts_opay_order_test',
+			$viewParams
+		);
+	}
+
+	// =============================================================
 	// 交易記錄頁
 	// =============================================================
 
