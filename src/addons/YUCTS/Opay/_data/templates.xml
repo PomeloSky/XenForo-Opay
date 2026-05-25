@@ -130,7 +130,7 @@
 								</xf:if>
 							</td>
 							<td>{$t.amount|number} {$t.currency}</td>
-							<td>{$t.payment_type ?: $t.payment_method}</td>
+							<td>{{ $t.payment_type ?: $t.payment_method }}</td>
 							<td>{$t.status_phrase}</td>
 							<td><xf:date time="{$t.create_date}" /></td>
 							<td>
@@ -175,7 +175,7 @@
 				(#{$transaction.user_id})
 			</dd>
 			<dt>{{ phrase('opay.amount') }}</dt><dd>{$transaction.amount|number} {$transaction.currency}</dd>
-			<dt>{{ phrase('opay.payment_type') }}</dt><dd>{$transaction.payment_type ?: $transaction.payment_method}</dd>
+			<dt>{{ phrase('opay.payment_type') }}</dt><dd>{{ $transaction.payment_type ?: $transaction.payment_method }}</dd>
 			<dt>{{ phrase('opay.status') }}</dt><dd>{$transaction.status_phrase}</dd>
 			<dt>{{ phrase('opay.create_date') }}</dt><dd><xf:date time="{$transaction.create_date}" /></dd>
 			<dt>{{ phrase('opay.payment_date') }}</dt>
