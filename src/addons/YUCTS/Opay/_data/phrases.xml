@@ -5,11 +5,11 @@
   <phrase title="admin_navigation.yuctsOpayLog" version_id="1000010" version_string="1.0.0"><![CDATA[交易記錄]]></phrase>
   <phrase title="admin_permission.yuctsOpayManage" version_id="1000010" version_string="1.0.0"><![CDATA[管理 OPay 訂單與交易記錄]]></phrase>
   <phrase title="option_group.yuctsOpay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶]]></phrase>
-  <phrase title="option_group.yuctsOpay_description" version_id="1000010" version_string="1.0.0"><![CDATA[OPay (歐付寶 / 綠界科技) 金流整合的全域設定。實際商店金鑰請於「付款方式」中設定。]]></phrase>
+  <phrase title="option_group_description.yuctsOpay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay (歐付寶 / 綠界科技) 金流整合的全域設定。實際商店金鑰請於「付款方式」中設定。]]></phrase>
   <phrase title="option.yuctsOpayLogRetentionDays" version_id="1000010" version_string="1.0.0"><![CDATA[交易記錄保留天數]]></phrase>
-  <phrase title="option.yuctsOpayLogRetentionDays_explain" version_id="1000010" version_string="1.0.0"><![CDATA[超過此天數的 OPay 交易日誌將由排程清除。請依您的稽核需求設定，最少 7 天。]]></phrase>
+  <phrase title="option_explain.yuctsOpayLogRetentionDays" version_id="1000010" version_string="1.0.0"><![CDATA[超過此天數的 OPay 交易日誌將由排程清除。請依您的稽核需求設定，最少 7 天。]]></phrase>
   <phrase title="option.yuctsOpayDebugMode" version_id="1000010" version_string="1.0.0"><![CDATA[啟用除錯模式]]></phrase>
-  <phrase title="option.yuctsOpayDebugMode_explain" version_id="1000010" version_string="1.0.0"><![CDATA[將完整的 OPay 回傳資料寫入 internal_data/data_log_ 檔案。僅限正式上線前測試使用。]]></phrase>
+  <phrase title="option_explain.yuctsOpayDebugMode" version_id="1000010" version_string="1.0.0"><![CDATA[將每一次與 OPay 的通訊內容 (送出與回傳) 寫入 XenForo 內建錯誤日誌，方便排查 CheckMacValue 不符等問題。僅限上線前測試使用，上線後請關閉。]]></phrase>
   <phrase title="payment_provider.opay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶 (台灣金流)]]></phrase>
   <phrase title="opay_merchant_id" version_id="1000010" version_string="1.0.0"><![CDATA[特店編號 (MerchantID)]]></phrase>
   <phrase title="opay_merchant_id_explain" version_id="1000010" version_string="1.0.0"><![CDATA[由歐付寶或綠界科技提供的特店編號，最長 10 個字元。]]></phrase>
@@ -25,6 +25,10 @@
   <phrase title="opay_environment_explain" version_id="1000010" version_string="1.0.0"><![CDATA[正式環境前請先以測試環境完成完整付款流程驗證。]]></phrase>
   <phrase title="opay_environment.production" version_id="1000010" version_string="1.0.0"><![CDATA[正式環境 (Production)]]></phrase>
   <phrase title="opay_environment.stage" version_id="1000010" version_string="1.0.0"><![CDATA[測試環境 (Stage)]]></phrase>
+  <phrase title="opay_encrypt_type" version_id="1000010" version_string="1.0.0"><![CDATA[CheckMacValue 加密方式]]></phrase>
+  <phrase title="opay_encrypt_type_explain" version_id="1000010" version_string="1.0.0"><![CDATA[請與您 OPay/綠界後台「系統介接設定」中的「CheckMacValue 加密類型」一致。新申請帳戶請選 SHA256；舊帳戶若預設仍為 MD5，請暫時選 MD5 並儘速於 OPay 後台升級為 SHA256。]]></phrase>
+  <phrase title="opay_encrypt_type.sha256" version_id="1000010" version_string="1.0.0"><![CDATA[SHA256 (推薦)]]></phrase>
+  <phrase title="opay_encrypt_type.md5" version_id="1000010" version_string="1.0.0"><![CDATA[MD5]]></phrase>
   <phrase title="opay_payment_methods" version_id="1000010" version_string="1.0.0"><![CDATA[允許的付款方式]]></phrase>
   <phrase title="opay_payment_methods_explain" version_id="1000010" version_string="1.0.0"><![CDATA[勾選使用者結帳時可選用的付款方式。若僅勾選一項，將直接導向該付款方式；勾選多項則顯示 OPay 收銀台選單。]]></phrase>
   <phrase title="opay_payment_method.Credit" version_id="1000010" version_string="1.0.0"><![CDATA[信用卡]]></phrase>

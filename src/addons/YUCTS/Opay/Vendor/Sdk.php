@@ -53,6 +53,11 @@ class Sdk
 		$this->encryptType = $encryptType;
 	}
 
+	public function getEncryptType(): int
+	{
+		return $this->encryptType;
+	}
+
 	/**
 	 * 產生 CheckMacValue。
 	 *
@@ -147,17 +152,32 @@ class Sdk
 			'MerchantID'      => $this->merchantId,
 			'MerchantTradeNo' => $merchantTradeNo,
 			'TimeStamp'       => time(),
-			'EncryptType'     => $this->encryptType,
 		];
 		$params['CheckMacValue'] = $this->generateCheckMacValue($params);
 
 		$response = $this->httpPost($this->apiHost . '/Cashier/QueryTradeInfo/V5', $params);
 
-		parse_str(str_replace(['+', ' '], ['%2B', '%20'], $response), $result);
+		// 與官方 SDK 相同：先 escape 空白與 +，避免 parse_str 把 + 解成空白
+		$normalized = str_replace(' ', '%20', $response);
+		$normalized = str_replace('+', '%2B', $normalized);
+		parse_str($normalized, $result);
+
+		if (!is_array($result) || !$result)
+		{
+			throw new SdkException('OPay 查詢回應無法解析：' . substr($response, 0, 300));
+		}
+
+		// 若回應是「找不到訂單」或其它純錯誤 (沒有完整欄位)，先直接回傳，不做 CheckMacValue 比對
+		if (!isset($result['MerchantID']) || !isset($result['CheckMacValue']))
+		{
+			return $result + ['_raw_response' => $response];
+		}
 
 		if (!$this->verifyCheckMacValue($result))
 		{
-			throw new SdkException('查詢回應之 CheckMacValue 驗證失敗。');
+			throw new SdkException(
+				'查詢回應之 CheckMacValue 驗證失敗，請確認您的「HashKey / HashIV / 加密方式」與 OPay 後台設定一致。原始回應：' . substr($response, 0, 300)
+			);
 		}
 
 		return $result;
@@ -247,6 +267,8 @@ class Sdk
 	 */
 	protected function httpPost(string $url, array $params): string
 	{
+		$debug = class_exists(\XF::class) && \XF::options() && !empty(\XF::options()->yuctsOpayDebugMode);
+
 		$ch = curl_init();
 		if ($ch === false)
 		{
@@ -275,6 +297,15 @@ class Sdk
 		}
 
 		curl_close($ch);
+
+		if ($debug)
+		{
+			$dbgParams = $params;
+			unset($dbgParams['CheckMacValue']);
+			\XF::logError('[OPay] POST ' . $url . ' → ' . json_encode($dbgParams, JSON_UNESCAPED_UNICODE)
+				. ' | response: ' . substr((string) $response, 0, 500));
+		}
+
 		return (string) $response;
 	}
 }

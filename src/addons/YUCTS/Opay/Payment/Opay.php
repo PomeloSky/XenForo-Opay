@@ -73,6 +73,13 @@ class Opay extends AbstractProvider
 			$errors[] = '請選擇正確的環境。';
 		}
 
+		$encryptType = $options['encrypt_type'] ?? 'sha256';
+		if (!in_array($encryptType, ['sha256', 'md5'], true))
+		{
+			$errors[] = '請選擇正確的 CheckMacValue 加密方式。';
+		}
+		$options['encrypt_type'] = $encryptType;
+
 		$methods = (array) ($options['payment_methods'] ?? []);
 		$valid   = ['Credit', 'WebATM', 'ATM', 'CVS'];
 		$methods = array_values(array_intersect($valid, $methods));
@@ -121,7 +128,8 @@ class Opay extends AbstractProvider
 		}
 
 		$itemName = $this->buildItemName($purchase);
-		$amount   = (int) round((float) $purchaseRequest->cost_amount);
+		$tradeDesc = $this->sanitizeTradeDesc($purchase->title ?: $purchase->purchasableTitle ?: 'Purchase');
+		$amount    = (int) round((float) $purchaseRequest->cost_amount);
 
 		$callbackUrl = $this->getCallbackUrl();
 		$returnUrl   = $purchase->returnUrl;
@@ -132,14 +140,14 @@ class Opay extends AbstractProvider
 			'MerchantTradeDate' => gmdate('Y/m/d H:i:s', \XF::$time + 28800), // 台灣時區
 			'PaymentType'       => 'aio',
 			'TotalAmount'       => $amount,
-			'TradeDesc'         => urlencode($this->truncateUtf8($purchase->title, 200)),
-			'ItemName'          => $this->truncateUtf8($itemName, 200),
+			'TradeDesc'         => $tradeDesc,
+			'ItemName'          => $itemName,
 			'ReturnURL'         => $callbackUrl,
 			'ClientBackURL'     => $cancelUrl,
 			'OrderResultURL'    => $returnUrl,
 			'ChoosePayment'     => $choosePayment,
 			'NeedExtraPaidInfo' => 'N',
-			'EncryptType'       => Sdk::ENC_SHA256,
+			'EncryptType'       => $sdk->getEncryptType(),
 		];
 
 		if ($ignorePayment !== '')
@@ -159,6 +167,13 @@ class Opay extends AbstractProvider
 
 		$params = $sdk->buildCheckoutParameters($params);
 		$action = $sdk->getCheckoutEndpoint();
+
+		if (\XF::options()->yuctsOpayDebugMode)
+		{
+			$debugParams = $params;
+			unset($debugParams['CheckMacValue']);
+			\XF::logError('[OPay] initiatePayment → ' . $action . ' ' . json_encode($debugParams, JSON_UNESCAPED_UNICODE));
+		}
 
 		$viewParams = [
 			'action' => $action,
@@ -202,14 +217,30 @@ class Opay extends AbstractProvider
 
 	protected function buildItemName(Purchase $purchase): string
 	{
-		$title    = $purchase->title ?: $purchase->purchasableTitle ?: 'Purchase';
+		$title    = $purchase->purchasableTitle ?: $purchase->title ?: 'Purchase';
+		// 移除 OPay ItemName 不接受的字元：# 為分隔符；換行 / Tab 會破壞表單
+		$title    = preg_replace('/[#\r\n\t]+/u', ' ', $title);
+		$title    = trim(preg_replace('/\s+/u', ' ', $title));
 		$cost     = (int) round((float) $purchase->cost);
 		$currency = $purchase->currency ?: 'TWD';
-		return sprintf('#%s %d %s x 1', $title, $cost, $currency);
+		$itemName = sprintf('#%s %d %s x 1', $this->truncateUtf8($title, 150), $cost, $currency);
+		return $this->truncateUtf8($itemName, 200);
 	}
 
 	/**
-	 * 安全截斷 UTF-8 字串 (位元組 / 字元混合限制)。
+	 * 將 TradeDesc 清理為 OPay 可接受的純文字 (≤ 200 字元、無控制字元)。
+	 * 注意：「不要」對此值 urlencode；表單提交時瀏覽器會自動 url-encode 一次，
+	 * 多餘的 urlencode 會造成顯示出 %XX 字串以及 CheckMacValue 不必要的歧異。
+	 */
+	protected function sanitizeTradeDesc(string $s): string
+	{
+		$s = preg_replace('/[\r\n\t]+/u', ' ', $s);
+		$s = trim(preg_replace('/\s+/u', ' ', $s));
+		return $this->truncateUtf8($s, 200);
+	}
+
+	/**
+	 * 安全截斷 UTF-8 字串。
 	 */
 	protected function truncateUtf8(string $s, int $maxChars): string
 	{
@@ -458,6 +489,7 @@ class Opay extends AbstractProvider
 		$options  = (array) $profile->options;
 		$provider = $options['service_provider'] ?? 'opay';
 		$env      = $options['environment'] ?? 'stage';
+		$enc      = ($options['encrypt_type'] ?? 'sha256') === 'md5' ? Sdk::ENC_MD5 : Sdk::ENC_SHA256;
 
 		if ($provider === 'ecpay')
 		{
@@ -473,7 +505,7 @@ class Opay extends AbstractProvider
 			(string) ($options['hash_key'] ?? ''),
 			(string) ($options['hash_iv'] ?? ''),
 			$host,
-			Sdk::ENC_SHA256
+			$enc
 		);
 	}
 
