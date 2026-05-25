@@ -96,6 +96,29 @@ class Result extends AbstractController
 			. ' mac=' . ($macOk ? 'ok' : 'skip/fail')
 		);
 
+		// OPay 明確回報失敗 (RtnCode 非空且非 1) 且 CheckMacValue 驗證通過：
+		// 自動把訂單狀態標記為 failed，並把 OPay 給的訊息寫入交易記錄，
+		// 避免後台一直停在「待付款」。
+		if (
+			$transaction
+			&& $macOk
+			&& $rtnCode !== ''
+			&& $rtnCode !== '1'
+			&& $transaction->status === \YUCTS\Opay\Entity\OpayTransaction::STATUS_PENDING
+		)
+		{
+			$transaction->status = \YUCTS\Opay\Entity\OpayTransaction::STATUS_FAILED;
+			$extra = (array) ($transaction->extra_info ?: []);
+			$extra['return_failure'] = [
+				'time'     => \XF::$time,
+				'rtn_code' => $rtnCode,
+				'rtn_msg'  => $rtnMsg,
+				'payload'  => $this->filterSensitive($payload),
+			];
+			$transaction->extra_info = $extra;
+			$transaction->save();
+		}
+
 		// 依 RtnCode 推導畫面要顯示的狀態
 		if ($rtnCode === '1' && $macOk)
 		{
@@ -142,5 +165,17 @@ class Result extends AbstractController
 			'payment_return_opay',
 			$viewParams
 		);
+	}
+
+	/**
+	 * 寫入訂單 extra_info 前移除 CheckMacValue 等不該長期保留的欄位。
+	 *
+	 * @param array<string,mixed> $payload
+	 * @return array<string,mixed>
+	 */
+	protected function filterSensitive(array $payload): array
+	{
+		unset($payload['CheckMacValue']);
+		return $payload;
 	}
 }

@@ -193,8 +193,15 @@ class Opay extends AbstractProvider
 		$ignorePayment = '';
 		if ($choosePayment === 'ALL')
 		{
-			$all       = ['Credit', 'WebATM', 'ATM', 'CVS', 'BARCODE', 'ApplePay', 'TWQR'];
-			$ignore    = array_values(array_diff($all, $methods));
+			// 重要：IgnorePayment 的值必須是 OPay 官方支援的付款方式名稱，
+			// 並且不能列入 OPay 認不得的項目。本套件僅讓使用者勾選這 4 種，
+			// 因此 ignore 對象也只在這 4 種範圍內。
+			//
+			// 先前曾在 ignore 清單裡塞 BARCODE / ApplePay / TWQR，OPay 端會回
+			// RtnCode 10100300 "IgnorePayment Error." 把整筆訂單拒收 — 因為
+			// 那些值是新版 ECPay 才支援、OPay 端不認得。
+			$allowed = ['Credit', 'WebATM', 'ATM', 'CVS'];
+			$ignore  = array_values(array_diff($allowed, $methods));
 			$ignorePayment = implode('#', $ignore);
 		}
 
