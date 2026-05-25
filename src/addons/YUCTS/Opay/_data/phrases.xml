@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<phrases>
+  <phrase title="admin_navigation.yuctsOpay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶]]></phrase>
+  <phrase title="admin_navigation.yuctsOpayOrders" version_id="1000010" version_string="1.0.0"><![CDATA[訂單管理]]></phrase>
+  <phrase title="admin_navigation.yuctsOpayLog" version_id="1000010" version_string="1.0.0"><![CDATA[交易記錄]]></phrase>
+  <phrase title="admin_permission.yuctsOpayManage" version_id="1000010" version_string="1.0.0"><![CDATA[管理 OPay 訂單與交易記錄]]></phrase>
+  <phrase title="option_group.yuctsOpay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶]]></phrase>
+  <phrase title="option_group.yuctsOpay_description" version_id="1000010" version_string="1.0.0"><![CDATA[OPay (歐付寶 / 綠界科技) 金流整合的全域設定。實際商店金鑰請於「付款方式」中設定。]]></phrase>
+  <phrase title="option.yuctsOpayLogRetentionDays" version_id="1000010" version_string="1.0.0"><![CDATA[交易記錄保留天數]]></phrase>
+  <phrase title="option.yuctsOpayLogRetentionDays_explain" version_id="1000010" version_string="1.0.0"><![CDATA[超過此天數的 OPay 交易日誌將由排程清除。請依您的稽核需求設定，最少 7 天。]]></phrase>
+  <phrase title="option.yuctsOpayDebugMode" version_id="1000010" version_string="1.0.0"><![CDATA[啟用除錯模式]]></phrase>
+  <phrase title="option.yuctsOpayDebugMode_explain" version_id="1000010" version_string="1.0.0"><![CDATA[將完整的 OPay 回傳資料寫入 internal_data/data_log_ 檔案。僅限正式上線前測試使用。]]></phrase>
+  <phrase title="payment_provider.opay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶 (台灣金流)]]></phrase>
+  <phrase title="opay_merchant_id" version_id="1000010" version_string="1.0.0"><![CDATA[特店編號 (MerchantID)]]></phrase>
+  <phrase title="opay_merchant_id_explain" version_id="1000010" version_string="1.0.0"><![CDATA[由歐付寶或綠界科技提供的特店編號，最長 10 個字元。]]></phrase>
+  <phrase title="opay_hash_key" version_id="1000010" version_string="1.0.0"><![CDATA[HashKey]]></phrase>
+  <phrase title="opay_hash_key_explain" version_id="1000010" version_string="1.0.0"><![CDATA[由歐付寶或綠界科技後台「系統開發管理 → 系統介接設定」取得。請妥善保管。]]></phrase>
+  <phrase title="opay_hash_iv" version_id="1000010" version_string="1.0.0"><![CDATA[HashIV]]></phrase>
+  <phrase title="opay_hash_iv_explain" version_id="1000010" version_string="1.0.0"><![CDATA[由歐付寶或綠界科技後台「系統開發管理 → 系統介接設定」取得。請妥善保管。]]></phrase>
+  <phrase title="opay_service_provider" version_id="1000010" version_string="1.0.0"><![CDATA[服務商]]></phrase>
+  <phrase title="opay_service_provider_explain" version_id="1000010" version_string="1.0.0"><![CDATA[請選擇您申請的服務商。OPay 與 ECPay (綠界) 共用相同 API，但 API 主機位置不同。]]></phrase>
+  <phrase title="opay_service_provider.opay" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 歐付寶]]></phrase>
+  <phrase title="opay_service_provider.ecpay" version_id="1000010" version_string="1.0.0"><![CDATA[ECPay 綠界科技]]></phrase>
+  <phrase title="opay_environment" version_id="1000010" version_string="1.0.0"><![CDATA[環境]]></phrase>
+  <phrase title="opay_environment_explain" version_id="1000010" version_string="1.0.0"><![CDATA[正式環境前請先以測試環境完成完整付款流程驗證。]]></phrase>
+  <phrase title="opay_environment.production" version_id="1000010" version_string="1.0.0"><![CDATA[正式環境 (Production)]]></phrase>
+  <phrase title="opay_environment.stage" version_id="1000010" version_string="1.0.0"><![CDATA[測試環境 (Stage)]]></phrase>
+  <phrase title="opay_payment_methods" version_id="1000010" version_string="1.0.0"><![CDATA[允許的付款方式]]></phrase>
+  <phrase title="opay_payment_methods_explain" version_id="1000010" version_string="1.0.0"><![CDATA[勾選使用者結帳時可選用的付款方式。若僅勾選一項，將直接導向該付款方式；勾選多項則顯示 OPay 收銀台選單。]]></phrase>
+  <phrase title="opay_payment_method.Credit" version_id="1000010" version_string="1.0.0"><![CDATA[信用卡]]></phrase>
+  <phrase title="opay_payment_method.WebATM" version_id="1000010" version_string="1.0.0"><![CDATA[網路 ATM]]></phrase>
+  <phrase title="opay_payment_method.ATM" version_id="1000010" version_string="1.0.0"><![CDATA[ATM 虛擬帳號]]></phrase>
+  <phrase title="opay_payment_method.CVS" version_id="1000010" version_string="1.0.0"><![CDATA[超商代碼]]></phrase>
+  <phrase title="opay_atm_expire_date" version_id="1000010" version_string="1.0.0"><![CDATA[ATM 繳費期限 (天)]]></phrase>
+  <phrase title="opay_atm_expire_date_explain" version_id="1000010" version_string="1.0.0"><![CDATA[ATM 虛擬帳號繳費期限，範圍 1~60 天 (預設 3 天)。]]></phrase>
+  <phrase title="opay_cvs_expire_minutes" version_id="1000010" version_string="1.0.0"><![CDATA[超商代碼繳費期限 (分鐘)]]></phrase>
+  <phrase title="opay_cvs_expire_minutes_explain" version_id="1000010" version_string="1.0.0"><![CDATA[超商代碼繳費期限，範圍 60 分鐘 (1 小時) 至 43200 分鐘 (30 天)。預設 10080 分鐘 (7 天)。]]></phrase>
+  <phrase title="opay.order_list" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 訂單列表]]></phrase>
+  <phrase title="opay.order_view" version_id="1000010" version_string="1.0.0"><![CDATA[訂單詳情]]></phrase>
+  <phrase title="opay.merchant_trade_no" version_id="1000010" version_string="1.0.0"><![CDATA[商店訂單編號]]></phrase>
+  <phrase title="opay.trade_no" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 交易序號]]></phrase>
+  <phrase title="opay.payment_type" version_id="1000010" version_string="1.0.0"><![CDATA[付款方式]]></phrase>
+  <phrase title="opay.amount" version_id="1000010" version_string="1.0.0"><![CDATA[金額]]></phrase>
+  <phrase title="opay.status" version_id="1000010" version_string="1.0.0"><![CDATA[狀態]]></phrase>
+  <phrase title="opay.purchaser" version_id="1000010" version_string="1.0.0"><![CDATA[購買者]]></phrase>
+  <phrase title="opay.create_date" version_id="1000010" version_string="1.0.0"><![CDATA[建立時間]]></phrase>
+  <phrase title="opay.payment_date" version_id="1000010" version_string="1.0.0"><![CDATA[付款時間]]></phrase>
+  <phrase title="opay.status.pending" version_id="1000010" version_string="1.0.0"><![CDATA[待付款]]></phrase>
+  <phrase title="opay.status.paid" version_id="1000010" version_string="1.0.0"><![CDATA[已付款]]></phrase>
+  <phrase title="opay.status.failed" version_id="1000010" version_string="1.0.0"><![CDATA[失敗]]></phrase>
+  <phrase title="opay.status.cancelled" version_id="1000010" version_string="1.0.0"><![CDATA[已取消]]></phrase>
+  <phrase title="opay.status.refunded" version_id="1000010" version_string="1.0.0"><![CDATA[已退款]]></phrase>
+  <phrase title="opay.action.complete" version_id="1000010" version_string="1.0.0"><![CDATA[手動成立訂單]]></phrase>
+  <phrase title="opay.action.cancel" version_id="1000010" version_string="1.0.0"><![CDATA[手動取消訂單]]></phrase>
+  <phrase title="opay.action.refund" version_id="1000010" version_string="1.0.0"><![CDATA[向 OPay 申請退刷]]></phrase>
+  <phrase title="opay.action.query" version_id="1000010" version_string="1.0.0"><![CDATA[查詢 OPay 訂單狀態]]></phrase>
+  <phrase title="opay.complete_confirm" version_id="1000010" version_string="1.0.0"><![CDATA[您確定要手動將此訂單標示為已付款？此動作會立即觸發 XenForo 升級開通或商品交付流程，並寫入交易記錄，無法復原。]]></phrase>
+  <phrase title="opay.cancel_confirm" version_id="1000010" version_string="1.0.0"><![CDATA[您確定要手動取消此訂單？]]></phrase>
+  <phrase title="opay.refund_confirm" version_id="1000010" version_string="1.0.0"><![CDATA[您確定要向 OPay 申請退刷？此動作會通知 OPay 退款，且無法於後台直接撤回。]]></phrase>
+  <phrase title="opay.order_completed_manually" version_id="1000010" version_string="1.0.0"><![CDATA[訂單已由 %{user} 手動成立 (備註：%{note})。]]></phrase>
+  <phrase title="opay.order_cancelled_manually" version_id="1000010" version_string="1.0.0"><![CDATA[訂單已由 %{user} 手動取消 (備註：%{note})。]]></phrase>
+  <phrase title="opay.refund_requested" version_id="1000010" version_string="1.0.0"><![CDATA[已向 OPay 提交退刷請求。]]></phrase>
+  <phrase title="opay.query_result" version_id="1000010" version_string="1.0.0"><![CDATA[OPay 查詢結果]]></phrase>
+  <phrase title="opay.no_orders" version_id="1000010" version_string="1.0.0"><![CDATA[目前沒有 OPay 訂單記錄。]]></phrase>
+  <phrase title="opay.search" version_id="1000010" version_string="1.0.0"><![CDATA[搜尋]]></phrase>
+  <phrase title="opay.note" version_id="1000010" version_string="1.0.0"><![CDATA[備註 (將寫入交易記錄)]]></phrase>
+  <phrase title="opay.invalid_check_mac_value" version_id="1000010" version_string="1.0.0"><![CDATA[CheckMacValue 驗證失敗，已拒絕 OPay 通知。]]></phrase>
+  <phrase title="opay.payment_initiating" version_id="1000010" version_string="1.0.0"><![CDATA[正在前往 OPay 收銀台，請稍候…]]></phrase>
+  <phrase title="opay.click_if_not_redirected" version_id="1000010" version_string="1.0.0"><![CDATA[若未自動跳轉，請點此前往付款]]></phrase>
+</phrases>

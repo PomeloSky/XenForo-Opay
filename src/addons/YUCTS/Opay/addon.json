@@ -1,0 +1,19 @@
+{
+    "title": "OPay 歐付寶 (台灣金流)",
+    "description": "XenForo 2.3 OPay (歐付寶 / 綠界科技 ECPay) 金流整合，支援信用卡、ATM 虛擬帳號、超商代碼 (CVS)、網路 ATM (WebATM)，並提供完整的後台訂單管理與手動成立 / 取消 / 退刷功能。",
+    "version_id": 1000010,
+    "version_string": "1.0.0",
+    "dev": "YUCTS",
+    "dev_url": "https://forum.yucts.com",
+    "faq_url": "https://forum.yucts.com",
+    "support_url": "https://forum.yucts.com",
+    "extra_urls": [
+        ["官方文件 (歐付寶)", "https://www.opay.tw/Service/api_doc"]
+    ],
+    "require": {
+        "XF": [2030010, "XenForo 2.3.0+"],
+        "php": ["7.4.0", "PHP 7.4.0+"]
+    },
+    "require_soft": [],
+    "icon": "fa-credit-card"
+}

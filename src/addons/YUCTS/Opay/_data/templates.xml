@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+  <template type="admin" title="payment_profile_opay" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:textboxrow name="options[merchant_id]"
+	value="{$profile.options.merchant_id}"
+	maxlength="10"
+	label="{{ phrase('opay_merchant_id') }}"
+	hint="{{ phrase('opay_merchant_id_explain') }}" />
+
+<xf:textboxrow name="options[hash_key]"
+	value="{$profile.options.hash_key}"
+	label="{{ phrase('opay_hash_key') }}"
+	hint="{{ phrase('opay_hash_key_explain') }}" />
+
+<xf:textboxrow name="options[hash_iv]"
+	value="{$profile.options.hash_iv}"
+	label="{{ phrase('opay_hash_iv') }}"
+	hint="{{ phrase('opay_hash_iv_explain') }}" />
+
+<xf:radiorow name="options[service_provider]"
+	value="{{ $profile.options.service_provider ?: 'opay' }}"
+	label="{{ phrase('opay_service_provider') }}"
+	hint="{{ phrase('opay_service_provider_explain') }}">
+	<xf:option value="opay" label="{{ phrase('opay_service_provider.opay') }}" />
+	<xf:option value="ecpay" label="{{ phrase('opay_service_provider.ecpay') }}" />
+</xf:radiorow>
+
+<xf:radiorow name="options[environment]"
+	value="{{ $profile.options.environment ?: 'stage' }}"
+	label="{{ phrase('opay_environment') }}"
+	hint="{{ phrase('opay_environment_explain') }}">
+	<xf:option value="stage" label="{{ phrase('opay_environment.stage') }}" />
+	<xf:option value="production" label="{{ phrase('opay_environment.production') }}" />
+</xf:radiorow>
+
+<xf:checkboxrow label="{{ phrase('opay_payment_methods') }}"
+	hint="{{ phrase('opay_payment_methods_explain') }}">
+	<xf:option name="options[payment_methods][]" value="Credit"
+		selected="{{ in_array('Credit', $profile.options.payment_methods ?: ['Credit']) }}"
+		label="{{ phrase('opay_payment_method.Credit') }}" />
+	<xf:option name="options[payment_methods][]" value="WebATM"
+		selected="{{ in_array('WebATM', $profile.options.payment_methods ?: []) }}"
+		label="{{ phrase('opay_payment_method.WebATM') }}" />
+	<xf:option name="options[payment_methods][]" value="ATM"
+		selected="{{ in_array('ATM', $profile.options.payment_methods ?: []) }}"
+		label="{{ phrase('opay_payment_method.ATM') }}" />
+	<xf:option name="options[payment_methods][]" value="CVS"
+		selected="{{ in_array('CVS', $profile.options.payment_methods ?: []) }}"
+		label="{{ phrase('opay_payment_method.CVS') }}" />
+</xf:checkboxrow>
+
+<xf:numberboxrow name="options[atm_expire_date]"
+	value="{{ $profile.options.atm_expire_date ?: 3 }}"
+	min="1" max="60" step="1"
+	label="{{ phrase('opay_atm_expire_date') }}"
+	hint="{{ phrase('opay_atm_expire_date_explain') }}" />
+
+<xf:numberboxrow name="options[cvs_expire_minutes]"
+	value="{{ $profile.options.cvs_expire_minutes ?: 10080 }}"
+	min="60" max="43200" step="60"
+	label="{{ phrase('opay_cvs_expire_minutes') }}"
+	hint="{{ phrase('opay_cvs_expire_minutes_explain') }}" />
+]]></template>
+
+  <template type="public" title="payment_initiate_opay" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('opay.payment_initiating') }}</xf:title>
+
+<div class="blockMessage">
+	<p>{{ phrase('opay.payment_initiating') }}</p>
+</div>
+
+<form id="OpayAutoSubmit" method="post" action="{$action}">
+	<xf:foreach loop="$params" key="$k" value="$v">
+		<input type="hidden" name="{$k}" value="{$v}" />
+	</xf:foreach>
+	<noscript>
+		<button type="submit" class="button button--primary">{{ phrase('opay.click_if_not_redirected') }}</button>
+	</noscript>
+</form>
+
+<xf:js>
+	(function() {
+		var form = document.getElementById('OpayAutoSubmit');
+		if (form) { form.submit(); }
+	})();
+</xf:js>
+]]></template>
+
+  <template type="admin" title="yucts_opay_order_list" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('opay.order_list') }}</xf:title>
+
+<xf:form action="{{ link('opay/orders') }}" method="get" class="block">
+	<div class="block-container">
+		<div class="block-body">
+			<xf:textboxrow name="mtn" value="{$filters.mtn}" label="{{ phrase('opay.merchant_trade_no') }}" />
+			<xf:textboxrow name="username" value="{$filters.username}" label="{{ phrase('opay.purchaser') }}" />
+			<xf:selectrow name="status" value="{$filters.status}" label="{{ phrase('opay.status') }}">
+				<xf:foreach loop="$statuses" key="$key" value="$label">
+					<xf:option value="{$key}">{$label}</xf:option>
+				</xf:foreach>
+			</xf:selectrow>
+		</div>
+		<xf:submitrow icon="search" submit="{{ phrase('opay.search') }}" />
+	</div>
+</xf:form>
+
+<xf:if is="$transactions is not empty">
+	<div class="block">
+		<div class="block-container">
+			<table class="dataList-table">
+				<thead>
+					<tr>
+						<th>{{ phrase('opay.merchant_trade_no') }}</th>
+						<th>{{ phrase('opay.trade_no') }}</th>
+						<th>{{ phrase('opay.purchaser') }}</th>
+						<th>{{ phrase('opay.amount') }}</th>
+						<th>{{ phrase('opay.payment_type') }}</th>
+						<th>{{ phrase('opay.status') }}</th>
+						<th>{{ phrase('opay.create_date') }}</th>
+						<th>{{ phrase('controls') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<xf:foreach loop="$transactions" value="$t">
+						<tr>
+							<td><a href="{{ link('opay/orders/view', $t) }}">{$t.merchant_trade_no}</a></td>
+							<td>{$t.trade_no}</td>
+							<td>
+								<xf:if is="$t.User">
+									<a href="{{ link('users', $t.User) }}">{$t.User.username}</a>
+								<xf:else />
+									{$t.username}
+								</xf:if>
+							</td>
+							<td>{$t.amount|number} {$t.currency}</td>
+							<td>{$t.payment_type ?: $t.payment_method}</td>
+							<td>{$t.status_phrase}</td>
+							<td><xf:date time="{$t.create_date}" /></td>
+							<td>
+								<a href="{{ link('opay/orders/view', $t) }}" class="button button--link">{{ phrase('view') }}</a>
+							</td>
+						</tr>
+					</xf:foreach>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<xf:pagenav page="{$page}" perpage="{$perPage}" total="{$total}" link="opay" params="{$filters}" />
+<xf:else />
+	<div class="blockMessage blockMessage--none">{{ phrase('opay.no_orders') }}</div>
+</xf:if>
+]]></template>
+
+  <template type="admin" title="yucts_opay_order_view" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('opay.order_view') }}: {$transaction.merchant_trade_no}</xf:title>
+
+<xf:pageaction>
+	<a href="{{ link('opay/orders/edit', $transaction) }}" class="button button--link">{{ phrase('edit') }}</a>
+	<xf:if is="$transaction.canManuallyComplete()">
+		<a href="{{ link('opay/orders/complete', $transaction) }}" class="button button--cta">{{ phrase('opay.action.complete') }}</a>
+	</xf:if>
+	<xf:if is="$transaction.canManuallyCancel()">
+		<a href="{{ link('opay/orders/cancel', $transaction) }}" class="button">{{ phrase('opay.action.cancel') }}</a>
+	</xf:if>
+	<xf:if is="$transaction.canRefund()">
+		<a href="{{ link('opay/orders/refund', $transaction) }}" class="button">{{ phrase('opay.action.refund') }}</a>
+	</xf:if>
+	<a href="{{ link('opay/orders/query', $transaction) }}" class="button button--link">{{ phrase('opay.action.query') }}</a>
+</xf:pageaction>
+
+<div class="block">
+	<div class="block-container">
+		<dl class="pairs pairs--rows pairs--fixedSmall">
+			<dt>{{ phrase('opay.merchant_trade_no') }}</dt><dd>{$transaction.merchant_trade_no}</dd>
+			<dt>{{ phrase('opay.trade_no') }}</dt><dd>{$transaction.trade_no}</dd>
+			<dt>{{ phrase('opay.purchaser') }}</dt><dd>
+				<xf:if is="$transaction.User"><a href="{{ link('users', $transaction.User) }}">{$transaction.User.username}</a><xf:else />{$transaction.username}</xf:if>
+				(#{$transaction.user_id})
+			</dd>
+			<dt>{{ phrase('opay.amount') }}</dt><dd>{$transaction.amount|number} {$transaction.currency}</dd>
+			<dt>{{ phrase('opay.payment_type') }}</dt><dd>{$transaction.payment_type ?: $transaction.payment_method}</dd>
+			<dt>{{ phrase('opay.status') }}</dt><dd>{$transaction.status_phrase}</dd>
+			<dt>{{ phrase('opay.create_date') }}</dt><dd><xf:date time="{$transaction.create_date}" /></dd>
+			<dt>{{ phrase('opay.payment_date') }}</dt>
+			<dd><xf:if is="$transaction.payment_date"><xf:date time="{$transaction.payment_date}" /><xf:else />—</xf:if></dd>
+			<dt>Request Key</dt><dd><code>{$transaction.request_key}</code></dd>
+			<dt>備註</dt><dd><xf:if is="$transaction.admin_note">{$transaction.admin_note|nl2br}<xf:else /><em>(無)</em></xf:if></dd>
+		</dl>
+	</div>
+</div>
+
+<xf:if is="$transaction.extra_info">
+	<div class="block">
+		<div class="block-container">
+			<div class="block-header">附加資訊</div>
+			<div class="block-body block-row">
+				<pre style="white-space:pre-wrap; word-break:break-all;">{$transaction.extra_info|json}</pre>
+			</div>
+		</div>
+	</div>
+</xf:if>
+
+<xf:if is="$logs is not empty">
+	<div class="block">
+		<div class="block-container">
+			<div class="block-header">{{ phrase('admin_navigation.yuctsOpayLog') }}</div>
+			<table class="dataList-table">
+				<thead>
+					<tr><th>時間</th><th>類型</th><th>訊息</th><th>TradeNo</th></tr>
+				</thead>
+				<tbody>
+					<xf:foreach loop="$logs" value="$log">
+						<tr>
+							<td><xf:date time="{$log.log_date}" /></td>
+							<td>{$log.log_type}</td>
+							<td>{$log.log_message}</td>
+							<td>{$log.transaction_id}</td>
+						</tr>
+					</xf:foreach>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</xf:if>
+]]></template>
+
+  <template type="admin" title="yucts_opay_order_edit" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('edit') }}: {$transaction.merchant_trade_no}</xf:title>
+
+<xf:form action="{{ link('opay/orders/edit', $transaction) }}" ajax="true" class="block">
+	<div class="block-container">
+		<div class="block-body">
+			<xf:textarearow name="admin_note" value="{$transaction.admin_note}" rows="6" label="{{ phrase('opay.note') }}" />
+		</div>
+		<xf:submitrow sticky="true" />
+	</div>
+</xf:form>
+]]></template>
+
+  <template type="admin" title="yucts_opay_order_action" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{$confirm}</xf:title>
+
+<xf:form action="{$actionUrl}" class="block">
+	<div class="block-container">
+		<div class="block-body">
+			<div class="blockMessage blockMessage--important">{$confirm}</div>
+			<dl class="pairs pairs--rows pairs--fixedSmall">
+				<dt>{{ phrase('opay.merchant_trade_no') }}</dt><dd>{$transaction.merchant_trade_no}</dd>
+				<dt>{{ phrase('opay.amount') }}</dt><dd>{$transaction.amount|number} {$transaction.currency}</dd>
+				<dt>{{ phrase('opay.purchaser') }}</dt><dd>{$transaction.username} (#{$transaction.user_id})</dd>
+				<dt>{{ phrase('opay.status') }}</dt><dd>{$transaction.status_phrase}</dd>
+			</dl>
+			<xf:textarearow name="note" rows="3" label="{{ phrase('opay.note') }}" />
+		</div>
+		<xf:submitrow icon="save" submit="{{ phrase('confirm') }}" />
+	</div>
+</xf:form>
+]]></template>
+
+  <template type="admin" title="yucts_opay_order_query" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('opay.query_result') }}</xf:title>
+
+<xf:pageaction>
+	<a href="{{ link('opay/orders/view', $transaction) }}" class="button button--link">{{ phrase('back') }}</a>
+</xf:pageaction>
+
+<div class="block">
+	<div class="block-container">
+		<table class="dataList-table">
+			<thead>
+				<tr><th>欄位</th><th>值</th></tr>
+			</thead>
+			<tbody>
+				<xf:foreach loop="$result" key="$k" value="$v">
+					<tr><td><code>{$k}</code></td><td>{$v}</td></tr>
+				</xf:foreach>
+			</tbody>
+		</table>
+	</div>
+</div>
+]]></template>
+
+  <template type="admin" title="yucts_opay_order_logs" version_id="1000010" version_string="1.0.0"><![CDATA[<xf:title>{{ phrase('admin_navigation.yuctsOpayLog') }}</xf:title>
+
+<xf:if is="$logs is not empty">
+	<div class="block">
+		<div class="block-container">
+			<table class="dataList-table">
+				<thead>
+					<tr>
+						<th>時間</th><th>類型</th><th>TradeNo</th><th>RequestKey</th><th>訊息</th>
+					</tr>
+				</thead>
+				<tbody>
+					<xf:foreach loop="$logs" value="$log">
+						<tr>
+							<td><xf:date time="{$log.log_date}" /></td>
+							<td>{$log.log_type}</td>
+							<td>{$log.transaction_id}</td>
+							<td><code>{$log.purchase_request_key}</code></td>
+							<td>{$log.log_message}</td>
+						</tr>
+					</xf:foreach>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<xf:pagenav page="{$page}" perpage="{$perPage}" total="{$total}" link="opay/logs" />
+<xf:else />
+	<div class="blockMessage blockMessage--none">{{ phrase('opay.no_orders') }}</div>
+</xf:if>
+]]></template>
+</templates>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cron>
+  <entry entry_id="yuctsOpayCleanup" cron_class="YUCTS\Opay\Cron\Cleanup" cron_method="run" active="1"><![CDATA[{"day_type":"dom","dom":[-1],"hours":[4],"minutes":[15]}]]></entry>
+</cron>

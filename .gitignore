@@ -1,0 +1,17 @@
+# 本機原始資料 (請勿上傳)
+/opaytw/
+/xenforo237/
+
+# 系統檔
+Thumbs.db
+.DS_Store
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+*.bak
+*~
+
+# 日誌
+*.log

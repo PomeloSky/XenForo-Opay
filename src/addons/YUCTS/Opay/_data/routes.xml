@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<routes>
+  <route route_type="admin" route_prefix="opay" controller="YUCTS\Opay:Order" context="yuctsOpay"/>
+  <route route_type="admin" route_prefix="opay" sub_name="orders" format="orders/:int&lt;transaction_id&gt;/" controller="YUCTS\Opay:Order" context="yuctsOpayOrders"/>
+  <route route_type="admin" route_prefix="opay" sub_name="logs" format="logs/" controller="YUCTS\Opay:Order" action_prefix="Log" context="yuctsOpayLog"/>
+</routes>

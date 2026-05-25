@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<admin_navigation>
+  <admin_navigation_entry navigation_id="yuctsOpay" display_order="450" link="opay" icon="fa-credit-card" debug_only="0" development_only="0" hide_no_children="1"/>
+  <admin_navigation_entry navigation_id="yuctsOpayOrders" parent_navigation_id="yuctsOpay" display_order="100" link="opay/orders" admin_permission_id="yuctsOpayManage" debug_only="0" development_only="0" hide_no_children="0"/>
+  <admin_navigation_entry navigation_id="yuctsOpayLog" parent_navigation_id="yuctsOpay" display_order="200" link="opay/logs" admin_permission_id="yuctsOpayManage" debug_only="0" development_only="0" hide_no_children="0"/>
+</admin_navigation>
