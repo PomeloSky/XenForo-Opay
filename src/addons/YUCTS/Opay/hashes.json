@@ -1,0 +1,21 @@
+{
+    "src/addons/YUCTS/Opay/addon.json": "73e29270fbffcc4fb835dbfd0a256f13f61fbce43a58993dd7e6b7708245d4fa",
+    "src/addons/YUCTS/Opay/Admin/Controller/Order.php": "110c72675d89a649ccefd3423ada74ab397d79c7d09a651be57a86c0db1c958c",
+    "src/addons/YUCTS/Opay/Cron/Cleanup.php": "e82fefc9f9d668d373b5990326b162f5caa0aa5d69154405116c3bd5b4973743",
+    "src/addons/YUCTS/Opay/Entity/OpayTransaction.php": "693fd0ca794073f99f39bef83ee0a9f73e3c5658937a438ce0e2a3d330478d1f",
+    "src/addons/YUCTS/Opay/Finder/OpayTransaction.php": "4ebdaef61843295171d8038a2f9f869a7ca4b1004be4883cb6d53404bdc42c18",
+    "src/addons/YUCTS/Opay/Install/Data/MySql.php": "235d72a82374faada1757cf0f6eb396e626e99dd0875baf1018b04ade83bff23",
+    "src/addons/YUCTS/Opay/Payment/Opay.php": "69c91d6467de0982849a5a69eb8086eec2c5d79a0d9ba00a6ddf638e17fc0773",
+    "src/addons/YUCTS/Opay/Repository/OpayTransaction.php": "de7e1ec02f895095f0a77a2707ff42dd0e4caec6855efd3d91b2ffed989148b9",
+    "src/addons/YUCTS/Opay/Setup.php": "12a543b1a4b5d7b9db193e5a002aedc25c60b0a426851d1c94503d879818391d",
+    "src/addons/YUCTS/Opay/Vendor/Sdk.php": "6ad1296f19ea22eed586d11f02f4b86fc92592dffb1b39bf950a57ade694d685",
+    "src/addons/YUCTS/Opay/Vendor/SdkException.php": "89dafb805ead2442300a007db5e4029c28a8c80a522761dcc22c7f3fee999508",
+    "src/addons/YUCTS/Opay/_data/admin_navigation.xml": "50f5ba6804c3554e95920e8a575452151424a724d237485c9336c4079e57963a",
+    "src/addons/YUCTS/Opay/_data/admin_permission.xml": "ba4f6535c2eb4410859ad0441233d67c4871e308f69766e60eb58a47e0691040",
+    "src/addons/YUCTS/Opay/_data/cron.xml": "75f17d90882080d3bd06270d74a3ff6305c460e219dbeb6bcdbd2793c5bdce4f",
+    "src/addons/YUCTS/Opay/_data/options.xml": "6cbc980c1aada2a3a95e0290eb82e8f2a80c24bea426ae55096e3671e1427482",
+    "src/addons/YUCTS/Opay/_data/option_groups.xml": "495bbdd07044b9bb9fc21f73f44e76ffbf36eb9c850232607264c09a5895527d",
+    "src/addons/YUCTS/Opay/_data/phrases.xml": "58fae563d4257f844d268994a3b5a25f8c7c43b3b393e2ffb84a0a800d5e9ec4",
+    "src/addons/YUCTS/Opay/_data/routes.xml": "ae2abae3fe54cac04ce5eb3af1bc1afce616250d8135a1bca2aeb03e9639bf8f",
+    "src/addons/YUCTS/Opay/_data/templates.xml": "495c2977beefddc89d44c57bad0001d451d2154656f31ee2c7fb1ae80f9552e3"
+}

@@ -233,16 +233,25 @@ src/addons/YUCTS/Opay/
 ├── Vendor/
 │   ├── Sdk.php                   # OPay AIO API 輕量封裝
 │   └── SdkException.php
-└── _data/
-    ├── admin_navigation.xml
-    ├── admin_permission.xml
-    ├── cron.xml
-    ├── option_groups.xml
-    ├── options.xml
-    ├── phrases.xml
-    ├── routes.xml
-    └── templates.xml
+├── _data/
+│   ├── admin_navigation.xml
+│   ├── admin_permission.xml
+│   ├── cron.xml
+│   ├── option_groups.xml
+│   ├── options.xml
+│   ├── phrases.xml
+│   ├── routes.xml
+│   └── templates.xml
+└── hashes.json                   # 套件健康檢查用 SHA-256 清單
 ```
+
+倉庫根目錄另附 `build/generate-hashes.php`：當您修改任何 addon 內檔案後，需要在 commit 前重新產生 `hashes.json`，否則 XenForo 安裝畫面會跳出「此插件的 hashes.json 文件丟失」或「健康檢查未通過」的警告。
+
+```bash
+php build/generate-hashes.php
+```
+
+該腳本完全比照 XenForo 內建 `\XF\Service\AddOn\HashGeneratorService` 的演算法（SHA-256，計算前先移除 `\r`），輸出與官方一致。
 
 ### 資料表
 - `xf_yucts_opay_transaction` — 本套件建立。
