@@ -100,15 +100,65 @@ class Order extends AbstractController
 			->limit(50)
 			->fetch();
 
+		// 由付款設定檔判斷此筆交易實際使用的 API host + 對應 OPay/ECPay 廠商後台
+		$diag = $this->buildTransactionDiagnostics($transaction);
+
 		$viewParams = [
 			'transaction' => $transaction,
 			'logs'        => $logs,
+			'diag'        => $diag,
 		];
 		return $this->view(
 			'YUCTS\Opay:Order\View',
 			'yucts_opay_order_view',
 			$viewParams
 		);
+	}
+
+	/**
+	 * 取得本筆交易的診斷資訊：
+	 *  - api_host         : 實際送出付款請求的 API 主機
+	 *  - vendor_url       : 對應的廠商後台首頁 (供管理員快速登入)
+	 *  - vendor_label     : 廠商後台名稱
+	 *  - service_provider : opay / ecpay
+	 *  - environment      : production / stage
+	 *  - encrypt_type     : sha256 / md5
+	 *
+	 * @return array<string,string>
+	 */
+	protected function buildTransactionDiagnostics(OpayTransaction $transaction): array
+	{
+		$opts = [];
+		if ($transaction->PaymentProfile)
+		{
+			$opts = (array) $transaction->PaymentProfile->options;
+		}
+
+		$provider = $opts['service_provider'] ?? 'opay';
+		$env      = $opts['environment'] ?? 'stage';
+		$enc      = $opts['encrypt_type'] ?? 'sha256';
+
+		if ($provider === 'ecpay')
+		{
+			$apiHost    = ($env === 'production') ? 'https://payment.ecpay.com.tw' : 'https://payment-stage.ecpay.com.tw';
+			$vendorUrl  = ($env === 'production') ? 'https://vendor.ecpay.com.tw/' : 'https://vendor-stage.ecpay.com.tw/';
+			$vendorLbl  = 'ECPay 綠界廠商後台';
+		}
+		else
+		{
+			$apiHost    = ($env === 'production') ? 'https://payment.opay.tw' : 'https://payment-stage.opay.tw';
+			$vendorUrl  = ($env === 'production') ? 'https://vendor.opay.tw/' : 'https://vendor-stage.opay.tw/';
+			$vendorLbl  = 'OPay 歐付寶廠商後台';
+		}
+
+		return [
+			'api_host'         => $apiHost,
+			'vendor_url'       => $vendorUrl,
+			'vendor_label'     => $vendorLbl,
+			'service_provider' => $provider,
+			'environment'      => $env,
+			'encrypt_type'     => $enc,
+		];
 	}
 
 	public function actionEdit(ParameterBag $params)
@@ -279,6 +329,26 @@ class Order extends AbstractController
 		$extra = (array) ($transaction->extra_info ?: []);
 		$extra['last_query'] = $result;
 		$transaction->extra_info = $extra;
+
+		// 若 OPay 已返回 TradeNo 但本機 transaction 還沒有，補上以利後續搜尋
+		if (!empty($result['TradeNo']) && empty($transaction->trade_no))
+		{
+			$transaction->trade_no = (string) $result['TradeNo'];
+		}
+		// 若 OPay 已標記為已付款，但本機尚為 pending (例如 S2S callback 漏接)
+		// 一併同步狀態
+		if (
+			isset($result['TradeStatus']) && (string) $result['TradeStatus'] === '1'
+			&& $transaction->status === OpayTransaction::STATUS_PENDING
+		)
+		{
+			$transaction->status = OpayTransaction::STATUS_PAID;
+			if (empty($transaction->payment_date))
+			{
+				$transaction->payment_date = \XF::$time;
+			}
+		}
+
 		$transaction->save();
 
 		$rows           = [];

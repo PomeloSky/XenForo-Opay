@@ -331,6 +331,18 @@ A：XenForo 內建 User Upgrade 已可由使用者重複續購，且 OPay 定期
   1. 後台 → 工具 → 重建 → 重建路由
   2. 在 OPay / ECPay 後台「結帳網址」設定中，確認沒有自行覆蓋 OrderResultURL。
 
+### OPay / ECPay 廠商後台找不到測試訂單，但本套件的「訂單管理」卻有記錄
+這是測試時最常見的「自以為失敗」狀況。請依下列流程排查：
+
+1. **後台是否真的查無？** 進入後台 → OPay 歐付寶 → 訂單管理 → 點開該筆訂單 → 點「向 OPay 申請查詢 OPay 訂單狀態」(actionQuery)。
+   - 若回應 `TradeStatus=10200047` (查無此訂單)：表示 OPay 端**真的**沒有此單，本套件送出時即被拒。請啟用除錯模式重新測試一次，並提供 `internal_data/yucts_opay_debug.log`。
+   - 若回應 `TradeStatus=0` (尚未付款) 且 **`TradeNo` 有值**：表示 OPay 端**有此單**只是使用者尚未完成付款。OPay 廠商後台預設可能僅顯示「已付款」訂單，請：
+     - 切換訂單狀態篩選為「全部」或「未付款」
+     - 或直接以 OPay 回傳的 `TradeNo` 在 OPay 後台搜尋
+     - 或以「商店訂單編號」(我們的 `YS......`) 搜尋
+2. **後台連結是否正確？** 訂單檢視頁右下的「診斷資訊」區會直接列出該筆交易實際使用的 API 端點與對應的廠商後台連結 (OPay 用 `vendor.opay.tw`、ECPay 用 `vendor.ecpay.com.tw`)。請確認您登入的是同一個。
+3. **正式環境的信用卡測試：** 若您在正式環境用「測試卡號」付款，OPay 會拒絕該筆交易，後台不會收到任何記錄。OPay 測試卡號**只能在 Stage 測試環境**使用。
+
 ### 使用者本來就有同款升級時卡在「無效的付款請求」
 - 本套件 v1.0.0 起，若 `canPurchase()` 因「使用者已擁有」而擋下，會自動 fallback 以 `getPurchaseObject()` 重建 Purchase，讓使用者完成付款（XF 對重複升級多半是冪等延長到期日）。
 - 若您仍卡住，請啟用除錯模式並檢查 `internal_data/yucts_opay_debug.log`。

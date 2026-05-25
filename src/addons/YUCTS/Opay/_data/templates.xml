@@ -260,6 +260,59 @@
 	</div>
 </div>
 
+<xf:if is="$transaction.status == 'pending' && $transaction.trade_no">
+	<div class="blockMessage blockMessage--info">
+		<h4 style="margin:0 0 8px 0;">本訂單已成立但尚未付款</h4>
+		<p style="margin:0 0 8px 0;">OPay 端已收到此訂單並產生交易序號 <code>{$transaction.trade_no}</code>，但使用者尚未完成付款。</p>
+		<p style="margin:0;">若您在 OPay 後台找不到此訂單，可能是後台預設僅顯示「已付款」的訂單。請：</p>
+		<ul style="margin:6px 0 0 20px;">
+			<li>在 {$diag.vendor_label}切換訂單狀態篩選為「<b>全部</b>」或「<b>未付款</b>」</li>
+			<li>或直接以交易序號 <code>{$transaction.trade_no}</code> 搜尋</li>
+			<li>或以商店訂單編號 <code>{$transaction.merchant_trade_no}</code> 搜尋</li>
+		</ul>
+	</div>
+</xf:if>
+
+<div class="block">
+	<div class="block-container">
+		<h2 class="block-header">診斷資訊</h2>
+		<table class="dataList-table">
+			<tbody>
+				<tr class="dataList-row">
+					<th class="dataList-cell" style="width:200px; font-weight:bold; background:#f7f7f7;">服務商</th>
+					<td class="dataList-cell">
+						<xf:if is="$diag.service_provider == 'ecpay'">ECPay 綠界<xf:else />OPay 歐付寶</xf:if>
+						<span style="opacity:.6;">({$diag.service_provider})</span>
+					</td>
+				</tr>
+				<tr class="dataList-row">
+					<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">環境</th>
+					<td class="dataList-cell">
+						<xf:if is="$diag.environment == 'production'"><span class="label label--green">正式環境 Production</span>
+						<xf:else /><span class="label label--yellow">測試環境 Stage</span>
+						</xf:if>
+					</td>
+				</tr>
+				<tr class="dataList-row">
+					<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">CheckMacValue 加密</th>
+					<td class="dataList-cell"><code>{$diag.encrypt_type|upper}</code></td>
+				</tr>
+				<tr class="dataList-row">
+					<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">API 端點</th>
+					<td class="dataList-cell"><code>{$diag.api_host}</code></td>
+				</tr>
+				<tr class="dataList-row">
+					<th class="dataList-cell" style="font-weight:bold; background:#f7f7f7;">廠商後台</th>
+					<td class="dataList-cell">
+						<a href="{$diag.vendor_url}" target="_blank" rel="noopener">{$diag.vendor_label}</a>
+						&nbsp; <span style="opacity:.6;">({$diag.vendor_url})</span>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+
 <xf:if is="$transaction.extra_info">
 	<div class="block">
 		<div class="block-container">
