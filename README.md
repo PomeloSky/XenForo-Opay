@@ -33,16 +33,21 @@ XenForo 2.3 的 **OPay 歐付寶**（與 **ECPay 綠界科技** 共用同一 AIO
   - **使用者升級（User Upgrade）**
   - **任何實作 `XF\Purchasable\AbstractPurchasable` 的第三方付費商品**
 - 同時支援 **OPay 歐付寶** 與 **ECPay 綠界科技**（同一介面，僅 API 主機不同）。
+- 同時支援 **SHA256**（推薦）與 **MD5** 兩種 CheckMacValue 加密方式，可在付款設定檔中切換。
 - 後台「OPay 訂單管理」介面，可：
   - 依訂單編號、會員、狀態進行搜尋
   - 檢視單筆訂單詳情、原始回傳資料、相關交易記錄
   - **手動成立訂單**（觸發 XenForo 的升級開通或商品交付流程）
   - **手動取消訂單**
   - **向 OPay 申請退刷 / 退款**（信用卡走 `DoAction(R)`、ATM/CVS 走 `AioChargeback`）
-  - **即時向 OPay 查詢訂單狀態**（`QueryTradeInfo`）
-- 完整的 CheckMacValue 雙向驗證（SHA256，採 `hash_equals` 常數時間比對）。
+  - **即時向 OPay 查詢訂單狀態**（`QueryTradeInfo`），並自動回填 TradeNo / 自動同步「已付款」狀態
+- 後台「**連線測試**」工具：以您的設定向 OPay 送出一筆刻意不存在的訂單編號，立即驗證 MerchantID / HashKey / HashIV / 加密類型 / API 端點是否全部正確，免去反覆送真實訂單測試。
+- 後台訂單檢視頁附「**診斷資訊**」區塊：顯示該筆交易實際使用的服務商、環境、加密類型、API 端點、對應廠商後台連結，疑難排解一目了然。
+- OPay 回傳明確失敗（`RtnCode != 1`）且 CheckMacValue 驗證通過時，自動把訂單標記為 `failed`，並寫入錯誤碼與訊息，後台不會卡在「待付款」。
+- 完整的 CheckMacValue 雙向驗證（採 `hash_equals` 常數時間比對，避免時序攻擊）。
 - 自訂資料表 `xf_yucts_opay_transaction`，與 XenForo 內建 `xf_payment_provider_log` 互相對應。
 - 內建每日 04:15 排程，自動清理過期的 `pending` / `failed` / `cancelled` 紀錄，`paid` 與 `refunded` 永久保留以利對帳。
+- 除錯模式：開啟後將所有 OPay 通訊內容寫入專屬檔案 `internal_data/yucts_opay_debug.log`，**不污染** XenForo 伺服器錯誤日誌。
 - 全繁體中文介面與用語。
 
 ---
@@ -115,12 +120,14 @@ cp -r /tmp/xf-opay/src/addons/YUCTS /path/to/your-xenforo/src/addons/
 | 設定 | 說明 |
 | --- | --- |
 | 顯示標題 | 例如「信用卡 / ATM / 超商付款」 |
-| 特店編號 (MerchantID) | OPay/綠界提供 |
-| HashKey / HashIV | OPay/綠界提供 |
+| 特店編號 (MerchantID) | OPay/綠界提供（系統會自動 trim 前後空白） |
+| HashKey / HashIV | OPay/綠界提供（系統會自動 trim 前後空白） |
 | 服務商 | OPay 或 ECPay（決定 API 主機） |
 | 環境 | 上線前請以 Stage 測試環境完成端對端驗證 |
-| 允許的付款方式 | 至少勾選 1 項，僅勾 1 項時將直接導向該付款頁 |
-| ATM / CVS 繳費期限 | 依您的對帳習慣調整 |
+| **CheckMacValue 加密方式** | **預設 SHA256（2017 年起所有新 OPay 帳號的標準）。若您是早期 OPay 帳號收到 CheckMacValue 不符錯誤，再切到 MD5 試試。** |
+| 允許的付款方式 | 至少勾選 1 項。**建議直接全選四種**讓 OPay 顯示收銀台選單；僅勾 1 項則直接導向該付款方式 |
+| ATM 繳費期限（天） | 1~60，預設 3 |
+| 超商代碼繳費期限（分鐘） | 60 ~ 43200（30 天），預設 10080（7 天） |
 
 ### 3. 將付款設定檔指派給使用者升級
 **後台 → 使用者 → 使用者升級**，在升級項目中勾選剛才建立的 OPay 付款設定檔。
@@ -135,19 +142,33 @@ cp -r /tmp/xf-opay/src/addons/YUCTS /path/to/your-xenforo/src/addons/
 
 ## 後台訂單管理
 
-進入 **後台 → OPay 歐付寶 → 訂單管理**。
+進入 **後台 → OPay 歐付寶**，可看到三個子頁面：
+
+### 訂單管理 `/admin.php?opay/orders/`
 
 | 動作 | 說明 |
 | --- | --- |
 | 訂單列表 | 可依「商店訂單編號」、「會員」、「狀態」搜尋並分頁。 |
-| 檢視訂單 | 顯示完整訂單欄位、最近一次 OPay 回傳資料、與該訂單相關的 XF 付款日誌。 |
+| 檢視訂單 | 顯示完整訂單欄位、**診斷資訊區**（本筆交易實際使用的服務商/環境/加密類型/API 端點/廠商後台連結）、最近一次 OPay 回傳資料、與該訂單相關的 XF 付款日誌。 |
 | 編輯 | 可寫入後台備註（不影響 OPay 訂單本身）。 |
 | 手動成立訂單 | 將狀態強制設為「已付款」，並透過 XF 標準流程觸發升級開通 / 商品交付。**只能對 `pending` 或 `failed` 狀態執行**。 |
 | 手動取消訂單 | 將狀態改為「已取消」，並寫入交易記錄。**只能對 `pending` 或 `failed` 狀態執行**。 |
 | 申請退款 | 對信用卡呼叫 `DoAction(Action=R)`、對 ATM/CVS 呼叫 `AioChargeback`。 |
-| 查詢 OPay | 即時打 `QueryTradeInfo`，回傳結果會寫入訂單 `extra_info.last_query`。 |
+| 查詢 OPay | 即時打 `QueryTradeInfo`，回傳結果會寫入 `extra_info.last_query`；若 OPay 已返回 TradeNo 但本機尚未保存會自動補上；若 OPay 已標記已付款但本機仍 pending（S2S callback 漏接）會自動同步狀態。 |
 
-所有手動操作都會：
+### 交易記錄 `/admin.php?opay/logs/`
+顯示 `xf_payment_provider_log` 中所有 `provider_id = 'opay'` 的紀錄，包括 OPay 主動 callback、後台手動操作。
+
+### 連線測試 `/admin.php?opay/test/`
+最有用的排錯工具。選擇一個 OPay 付款設定檔，按下「送出測試查詢」：
+- 後端自動產生一個刻意不存在的 `MerchantTradeNo`（`PING + 11 hex`）
+- 以您設定的 HashKey/HashIV/加密類型，向 OPay 送出 `QueryTradeInfo/V5`
+- 顯示原始回應與 CheckMacValue 雙向驗證結果
+
+**正常結果**：`TradeStatus=10200047`（查無此訂單）+ CheckMacValue 驗證通過 → 表示您的整合設定 **完全正確**。
+**失敗結果**：「CheckMacValue 驗證失敗」或「找不到特店」→ 直接告訴您 MerchantID / HashKey / HashIV / 加密類型 哪裡有錯，免去反覆送真實訂單測試。
+
+### 所有後台操作的共通性
 1. 同步寫入 `xf_payment_provider_log`（與 `xf_yucts_opay_transaction.extra_info`）
 2. 帶上「執行者使用者名稱」與「備註」欄位
 3. 受 `yuctsOpayManage` 管理員權限保護
@@ -276,15 +297,17 @@ php build/generate-hashes.php
 
 本套件設計時遵循以下原則：
 
-1. **CheckMacValue 雙向驗證**：所有對 OPay 發出與從 OPay 接收的請求，都會以 SHA256 計算並驗證 `CheckMacValue`。回傳驗證採用 `hash_equals()` 進行常數時間比對，避免時序攻擊。
+1. **CheckMacValue 雙向驗證**：所有對 OPay 發出與從 OPay 接收的請求，都會以 SHA256 / MD5（依設定）計算並驗證 `CheckMacValue`。回傳驗證採用 `hash_equals()` 進行常數時間比對，避免時序攻擊。
 2. **金額驗證**：回呼處理時除 CheckMacValue 外，另以 `validateCost()` 將 `TradeAmt` 與 `xf_purchase_request.cost_amount` 做整數比對。
 3. **防止重複處理**：以 XF 內建 `validateTransaction()` 機制（依 `xf_payment_provider_log` 之 `transaction_id` + `provider_id`）防止同一筆 OPay TradeNo 被處理兩次。
-4. **管理介面權限**：所有後台動作（檢視、編輯、手動成立 / 取消 / 退款 / 查詢）皆強制 `assertAdminPermission('yuctsOpayManage')`。
-5. **表單 CSRF**：所有 POST 動作均由 XF 的 `<xf:form>` 標籤自動帶上 CSRF token。
+4. **管理介面權限**：所有後台動作（檢視、編輯、手動成立 / 取消 / 退款 / 查詢、連線測試）皆強制 `assertAdminPermission('yuctsOpayManage')`。
+5. **表單 CSRF**：所有 XF 後台 POST 動作均由 `<xf:form>` 自動帶上 CSRF token。唯一例外是 `/opay-return/{key}/`，明確 override `checkCsrfIfNeeded()` 允許 OPay 跨站 POST；此頁不執行任何寫入「使用者升級狀態」的動作，僅依 OPay 回報 RtnCode 並驗證 CheckMacValue 後標記訂單 `failed`，實際付款結果仍以 S2S callback 為準。
 6. **HTTPS 強制**：對 OPay API 的 cURL 呼叫啟用 `CURLOPT_SSL_VERIFYPEER` 與 `CURLOPT_SSL_VERIFYHOST=2`。
 7. **SQL 注入防護**：所有資料庫操作均透過 XF Entity / Finder / Schema Manager（參數化查詢）執行。
-8. **敏感資料**：寫入交易日誌前會主動移除 `CheckMacValue` 等驗證字段。
-9. **解除安裝清理**：移除套件時，會同步刪除所屬資料表與 `xf_payment_profile` 中以 `opay` 為 provider 的紀錄，避免後台殘留無效項目。
+8. **HashKey / HashIV 防呆**：在 `verifyConfig` 與 SDK 兩端皆呼叫 `trim()`，避免使用者貼上憑證時夾帶前/後空白導致 CheckMacValue 永遠對不上。
+9. **敏感資料**：寫入交易日誌、`extra_info` 前會主動移除 `CheckMacValue` 等驗證字段；除錯日誌中 HashKey / HashIV 僅以「前 2 + 中間遮罩 + 後 2 + 長度」呈現。
+10. **除錯日誌獨立檔案**：開啟除錯模式後資料寫入 `internal_data/yucts_opay_debug.log`，**不會**塞進 XF 「伺服器錯誤日誌」造成管理員誤判為錯誤。內部目錄 `internal_data/` 應已被 XenForo 預設 `.htaccess` 拒絕外部直接存取。
+11. **解除安裝清理**：移除套件時，會同步刪除所屬資料表與 `xf_payment_profile` 中以 `opay` 為 provider 的紀錄，避免後台殘留無效項目。
 
 > **建議**：上線前請先於測試環境完整跑過一輪「下單 → ATM 取號 → 繳費 → 後台手動成立 → 退款」流程。
 
@@ -297,15 +320,22 @@ A：兩者共用同一 AIO API（甚至參數名稱、CheckMacValue 算法、回
 
 **Q2. 為什麼回呼後使用者沒有自動升級？**
 A：請依序檢查：
-1. 後台 → OPay 歐付寶 → 訂單管理，看該筆訂單目前狀態。若仍為 `pending`，代表 OPay 的 ReturnURL 沒有打回您的站點，請確認 ReturnURL 可從外網存取且為 HTTPS。
-2. 後台 → OPay 歐付寶 → 交易記錄，是否有錯誤訊息（特別注意「CheckMacValue verify fail」）。常見原因為 HashKey/HashIV 填錯，或正式 / 測試環境憑證錯置。
-3. 若 OPay 端已顯示付款成功但站點未開通，可使用後台的「查詢 OPay 訂單狀態」按鈕。
+1. **連線測試先過**：後台 → OPay → 連線測試，確認顯示「通過」+ `TradeStatus=10200047`。若失敗，先解決連線層問題。
+2. 後台 → OPay 歐付寶 → 訂單管理 → 點開該筆訂單。檢視頁的「**診斷資訊**」區會明確列出此筆交易實際使用的 API 端點與廠商後台連結，請確認與您要查的 OPay 後台是同一個。
+3. 若訂單狀態為 `pending`，按「查詢 OPay 訂單狀態」即時打 QueryTradeInfo；若回應 `TradeStatus=1`（已付款）系統會自動同步狀態並開通升級。若回應 `TradeStatus=0` + 有 TradeNo，表示 OPay 端有單但使用者未完成付款；若 `TradeStatus=10200047`，表示 OPay 端沒收到此單（請啟用除錯模式查 `internal_data/yucts_opay_debug.log` 看 OPay 的拒收原因，例如 `RtnCode=10100300 IgnorePayment Error`）。
+4. 後台 → OPay 歐付寶 → 交易記錄，看有無 `CheckMacValue verify fail` 之類錯誤；通常是 HashKey/HashIV 錯誤或正式 / 測試環境憑證錯置。
 
 **Q3. 可以對 ATM/CVS 退款嗎？**
 A：可以，但走的是「廠商通知 OPay 退款」(`AioChargeback`)，款項自您的 OPay 餘額退回，不會自動回到買家帳戶——需您另行匯款給買家。信用卡退刷則由 OPay 直接退回原卡。
 
 **Q4. 為何不支援定期定額？**
 A：XenForo 內建 User Upgrade 已可由使用者重複續購，且 OPay 定期定額有金額固定的限制，與 XF Recurring 規格契合度低，因此本版本暫不實作。如有需求歡迎於 GitHub 發 Issue 討論。
+
+**Q5. 我該選 SHA256 還是 MD5 加密類型？**
+A：**強烈推薦 SHA256**。OPay 自 2017 年起，所有新申請的特店帳號都預設使用 SHA256，OPay 後台並無「切換 MD5/SHA256」的選項。僅有極少數 2017 年以前申請、且從未升級過的舊特店帳號需要選 MD5。若您不確定，先用 SHA256 試「連線測試」，若顯示「通過」就保持 SHA256；若顯示「CheckMacValue 驗證失敗」再切到 MD5 試。
+
+**Q6. 為什麼除錯日誌寫到專屬檔案而不是 XF 伺服器錯誤日誌？**
+A：先前版本曾把每次 OPay 通訊都用 `\XF::logError()` 寫入「伺服器錯誤日誌」，每筆都顯示為 `ErrorException`，會讓管理員以為發生致命錯誤。新版改寫入 `internal_data/yucts_opay_debug.log`，既能保留診斷資料又不污染錯誤日誌。`internal_data/` 已被 XenForo 預設 `.htaccess` 拒絕外部存取。
 
 ---
 
@@ -378,11 +408,40 @@ A：XenForo 內建 User Upgrade 已可由使用者重複續購，且 OPay 定期
 ## 版本歷史
 
 ### 1.0.0（2026-05-25）
-- 首版發布。
-- 支援 OPay / ECPay 雙服務商。
-- 支援信用卡 / WebATM / ATM / CVS 四種付款方式。
-- 完整後台訂單管理（檢視、編輯備註、手動成立、手動取消、退款、查詢）。
-- 每日排程清理過期記錄。
+**核心**
+- 完整實作 XenForo 2.3 `\XF\Payment\AbstractProvider`，含 `initiatePayment` / `setupCallback` / `validate*` / `getPaymentResult` / `completeTransaction`。
+- 同時支援 OPay 歐付寶（`payment.opay.tw`）與 ECPay 綠界（`payment.ecpay.com.tw`），可一鍵切換。
+- 支援 SHA256（預設）與 MD5 兩種 CheckMacValue 加密類型。
+- 支援信用卡 / WebATM / ATM / CVS 四種付款方式；自動依勾選數量決定 `ChoosePayment` (單選 → 直接該方式；多選 → `ALL` + 正確的 `IgnorePayment`)。
+
+**後台**
+- 訂單管理：搜尋、檢視（含診斷資訊區塊）、編輯備註、手動成立、手動取消、退款、即時 QueryTradeInfo 查詢、查詢結果自動回填 TradeNo 與已付款狀態。
+- 交易記錄頁。
+- 連線測試頁（送出測試 QueryTradeInfo 驗證設定完全正確）。
+- 全繁體中文介面，含 OPay 回應欄位中英對照與 TradeStatus 代碼自動翻譯。
+- 每日 04:15 排程自動清理過期 `pending` / `failed` / `cancelled` 紀錄。
+
+**設計**
+- AJAX 攔截處理：`initiatePayment` 回傳 Redirect 到 `/opay-checkout/{key}/` 中介頁，由該頁吐出純 HTML auto-submit 表單到 OPay，避免被 XF AJAX 處理器當成 overlay 卡住。
+- 跨站 cookie 處理：`OrderResultURL` 指向公開的 `/opay-return/{key}/`，該頁不要求 cookie / 登入，並以同源 GET 跳轉回 `/account/upgrade-purchase`，避免 SameSite=Lax 政策導致使用者「付款後變未登入」。
+- OPay 失敗自動標記：當 OPay 透過 OrderResultURL 回報 `RtnCode != 1` 且 CheckMacValue 驗證通過，自動把訂單標記為 `failed` 並寫入錯誤碼。
+- `canPurchase()` fallback：若使用者已擁有同款升級導致 `canPurchase` 失敗，自動改以 `getPurchaseObject()` 重建 Purchase，讓使用者完成付款。
+
+**安全**
+- CheckMacValue 雙向驗證（採 `hash_equals` 常數時間比對）。
+- HashKey / HashIV 兩端 trim，避免使用者貼上時夾帶空白導致永遠對不上。
+- 金額用 `validateCost()` 與 `xf_purchase_request.cost_amount` 整數比對。
+- `validateTransaction()` 防止同筆 OPay TradeNo 被處理兩次。
+- 所有後台操作受 `yuctsOpayManage` 管理員權限保護。
+- `Pub\Controller\Result` 明確 override `checkCsrfIfNeeded()` 允許 OPay 跨站 POST，不影響其它 XF 路由的 CSRF 保護。
+
+**除錯**
+- 開啟除錯模式時所有 OPay 通訊寫入 `internal_data/yucts_opay_debug.log`（**不污染**「伺服器錯誤日誌」）。
+- CheckMacValue 計算過程的 raw 字串長度、HashKey/HashIV 遮罩、最終 hash 都會記入除錯日誌。
+
+**已知歷史 bug 與修正**
+- `IgnorePayment` 不可塞入 OPay 不認得的方法名（如 `BARCODE` / `ApplePay` / `TWQR`，這些是新版 ECPay 才有），否則 OPay 會回 `RtnCode=10100300 IgnorePayment Error.` 並拒收訂單。修正後 `IgnorePayment` 僅在本套件提供的 4 種付款方式之間取差集。
+- Phrase 標題只能含一個 `.`；模板 `?:` 表達式必須在 `{{ }}` 雙花括號內；filter 名稱是 `to_upper` 而非 `upper`。
 
 ---
 
