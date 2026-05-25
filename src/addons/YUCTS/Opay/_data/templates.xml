@@ -508,6 +508,23 @@
 										回傳 <code>TradeStatus=10200047</code>（查無此訂單）—— 此為預期回應，代表您的整合設定完全正確！
 									</xf:if>
 								</div>
+
+								<xf:if is="$result.TradeStatus == '10200047'">
+									<div style="margin-top:14px; padding:12px; background:#f4f9ff; border-left:3px solid #2a6bb0; font-size:13px;">
+										<b>下一步：</b> 連線測試通過僅代表「身分驗證」與「演算法」正確，**並不代表 OPay 帳號已允許您送出實際訂單**。<br /><br />
+
+										若您點購買後 OPay 仍不建立訂單（後台查不到、TradeStatus 永遠 10200047），最常見原因是 OPay 帳號的「付款方式權限」不足。建議：
+										<ol style="margin:8px 0 0 20px; padding:0;">
+											<li>編輯此付款設定檔，「允許的付款方式」勾選<b>全部四種</b>（信用卡 + WebATM + ATM + CVS）後儲存</li>
+											<li>重新進入 <code>/account/upgrades</code> 點購買，看 OPay 是否顯示<b>收銀台選單</b>（ALL 模式）</li>
+											<li>分別選 ATM / CVS（這兩種多數帳號預設啟用且不需真實付款即可取號驗證）</li>
+											<li>若 ATM / CVS 可取號但信用卡跳回，致電 <b>OPay 客服 02-2655-1775</b>，告知：<br />
+												「我已完成 API 串接（QueryTradeInfo 可正常驗證 CheckMacValue），但 AioCheckOut Credit 訂單 OPay 端不建立訂單，請確認信用卡功能是否已啟用。」
+											</li>
+											<li>同時請至 OPay 廠商後台確認「<b>系統介接設定 / 回傳網址設定</b>」是否需要將您的網域（如 <code>https://yourdomain.com</code>）加入白名單。</li>
+										</ol>
+									</div>
+								</xf:if>
 							<xf:else />
 								<em>尚未測試</em>
 							</xf:if>
